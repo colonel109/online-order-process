@@ -1,0 +1,337 @@
+{
+    "order_id": {
+        "raw_name": "Mã đơn hàng",
+        "dtype": "string",
+        "is_req": true
+    },
+    "package_id": {
+        "raw_name": "Mã Kiện Hàng",
+        "dtype": "string",
+        "is_req": true
+    },
+    "order_date": {
+        "raw_name": "Ngày đặt hàng",
+        "dtype": "datetime",
+        "is_req": true
+    },
+    "order_status": {
+        "raw_name": "Trạng Thái Đơn Hàng",
+        "dtype": "string",
+        "is_req": false
+    },
+    "ready_to_ship_combo": {
+        "raw_name": "Đơn Gói sẵn Giao nhanh",
+        "dtype": "string",
+        "is_req": false
+    },
+    "top_selling_combo": {
+        "raw_name": "Sản Phẩm Bán Chạy",
+        "dtype": "string",
+        "is_req": false
+    },
+    "buyer_comment": {
+        "raw_name": "Nhận xét từ Người mua",
+        "dtype": "string",
+        "is_req": false
+    },
+    "tracking_number": {
+        "raw_name": "Mã vận đơn",
+        "dtype": "string",
+        "is_req": true
+    },
+    "shipping_carrier": {
+        "raw_name": "Đơn Vị Vận Chuyển",
+        "dtype": "string",
+        "is_req": true
+    },
+    "shipping_method": {
+        "raw_name": "Phương thức giao hàng",
+        "dtype": "string",
+        "is_req": true
+    },
+    "order_type": {
+        "raw_name": "Loại đơn hàng",
+        "dtype": "string",
+        "is_req": false
+    },
+    "ship_out_date": {
+        "raw_name": "Ngày xuất hàng",
+        "dtype": "datetime",
+        "is_req": false
+    },
+    "estimated_delivery_date": {
+        "raw_name": "Ngày giao hàng dự kiến",
+        "dtype": "datetime",
+        "is_req": false
+    },
+    "local_delivery_date": {
+        "raw_name": "Ngày giao hàng nội địa",
+        "dtype": "datetime",
+        "is_req": false
+    },
+    "delivery_time": {
+        "raw_name": "Thời gian giao hàng",
+        "dtype": "datetime",
+        "is_req": false
+    },
+    "order_completion_time": {
+        "raw_name": "Thời gian hoàn thành đơn hàng",
+        "dtype": "datetime",
+        "is_req": false
+    },
+    "return_refund_status": {
+        "raw_name": "Trạng thái Trả hàng/Hoàn tiền",
+        "dtype": "string",
+        "is_req": false
+    },
+    "cancellation_date": {
+        "raw_name": "Ngày hủy thành công",
+        "dtype": "datetime",
+        "is_req": false
+    },
+    "fulfilled_by_shopee": {
+        "raw_name": "Đơn hàng được xử lý bởi Shopee",
+        "dtype": "string",
+        "is_req": false
+    },
+    "combo_sku": {
+        "raw_name": "SKU sản phẩm",
+        "dtype": "string",
+        "is_req": true
+    },
+    "combo_name": {
+        "raw_name": "Tên sản phẩm",
+        "dtype": "string",
+        "is_req": true
+    },
+    "combo_weight": {
+        "raw_name": "Cân nặng sản phẩm",
+        "dtype": "float",
+        "is_req": true
+    },
+    "total_weight": {
+        "raw_name": "Tổng cân nặng",
+        "dtype": "float",
+        "is_req": true
+    },
+    "warehouse_name": {
+        "raw_name": "Tên kho hàng",
+        "dtype": "string",
+        "is_req": true
+    },
+    "combo_variation_sku": {
+        "raw_name": "SKU phân loại hàng",
+        "dtype": "string",
+        "is_req": true
+    },
+    "combo_variation_name": {
+        "raw_name": "Tên phân loại hàng",
+        "dtype": "string",
+        "is_req": true
+    },
+    "owned_by_shopee": {
+        "raw_name": "Sở hữu bởi Shopee",
+        "dtype": "string",
+        "is_req": false
+    },
+    "original_price": {
+        "raw_name": "Giá gốc",
+        "dtype": "float",
+        "is_req": true
+    },
+    "seller_subsidy": {
+        "raw_name": "Người bán trợ giá",
+        "dtype": "float",
+        "is_req": true
+    },
+    "shopee_subsidy": {
+        "raw_name": "Được Shopee trợ giá",
+        "dtype": "float",
+        "is_req": true
+    },
+    "total_seller_subsidy_amount": {
+        "raw_name": "Tổng số tiền được người bán trợ giá",
+        "dtype": "float",
+        "is_req": true
+    },
+    "deal_price": {
+        "raw_name": "Giá ưu đãi",
+        "dtype": "float",
+        "is_req": true
+    },
+    "quantity": {
+        "raw_name": "Số lượng",
+        "dtype": "int",
+        "is_req": true
+    },
+    "returned_quantity": {
+        "raw_name": "Số lượng sản phẩm được hoàn trả",
+        "dtype": "int",
+        "is_req": false
+    },
+    "total_buyer_payment_amount": {
+        "raw_name": "Tổng số tiền Người mua thanh toán",
+        "dtype": "float",
+        "is_req": true
+    },
+    "total_order_value_vnd": {
+        "raw_name": "Tổng giá trị đơn hàng (VND)",
+        "dtype": "float",
+        "is_req": true
+    },
+    "shop_voucher": {
+        "raw_name": "Mã giảm giá của Shop",
+        "dtype": "float",
+        "is_req": false
+    },
+    "coin_cashback": {
+        "raw_name": "Hoàn Xu",
+        "dtype": "float",
+        "is_req": false
+    },
+    "shopee_voucher": {
+        "raw_name": "Mã giảm giá của Shopee",
+        "dtype": "float",
+        "is_req": false
+    },
+    "bundle_deal_indicator": {
+        "raw_name": "Chỉ tiêu Combo Khuyến Mãi",
+        "dtype": "string",
+        "is_req": false
+    },
+    "shopee_bundle_discount": {
+        "raw_name": "Giảm giá từ combo Shopee",
+        "dtype": "float",
+        "is_req": false
+    },
+    "shop_bundle_discount": {
+        "raw_name": "Giảm giá từ Combo của Shop",
+        "dtype": "float",
+        "is_req": false
+    },
+    "shopee_coins_redeemed": {
+        "raw_name": "Shopee Xu được hoàn",
+        "dtype": "float",
+        "is_req": false
+    },
+    "debit_card_discount": {
+        "raw_name": "Số tiền được giảm khi thanh toán bằng thẻ Ghi nợ",
+        "dtype": "float",
+        "is_req": false
+    },
+    "trade_in_discount": {
+        "raw_name": "Trade-in Discount",
+        "dtype": "float",
+        "is_req": false
+    },
+    "trade_in_bonus": {
+        "raw_name": "Trade-in Bonus",
+        "dtype": "float",
+        "is_req": false
+    },
+    "estimated_shipping_fee": {
+        "raw_name": "Phí vận chuyển (dự kiến)",
+        "dtype": "float",
+        "is_req": true
+    },
+    "trade_in_bonus_by_seller": {
+        "raw_name": "Trade-in Bonus by Seller",
+        "dtype": "float",
+        "is_req": false
+    },
+    "shipping_fee_paid_by_buyer": {
+        "raw_name": "Phí vận chuyển mà người mua trả",
+        "dtype": "float",
+        "is_req": true
+    },
+    "return_shipping_fee": {
+        "raw_name": "Phí vận chuyển trả hàng (đơn Trả hàng/hoàn tiền)",
+        "dtype": "float",
+        "is_req": false
+    },
+    "grand_total_buyer_payment": {
+        "raw_name": "Tổng số tiền người mua thanh toán",
+        "dtype": "float",
+        "is_req": true
+    },
+    "payment_time": {
+        "raw_name": "Thời gian đơn hàng được thanh toán",
+        "dtype": "datetime",
+        "is_req": false
+    },
+    "escrow_verification_date": {
+        "raw_name": "Ngày xác minh ký quỹ",
+        "dtype": "datetime",
+        "is_req": false
+    },
+    "payment_method": {
+        "raw_name": "Phương thức thanh toán",
+        "dtype": "string",
+        "is_req": true
+    },
+    "fixed_fee": {
+        "raw_name": "Phí cố định",
+        "dtype": "float",
+        "is_req": false
+    },
+    "service_fee": {
+        "raw_name": "Phí Dịch Vụ",
+        "dtype": "float",
+        "is_req": false
+    },
+    "transaction_fee": {
+        "raw_name": "Phí xử lý giao dịch",
+        "dtype": "float",
+        "is_req": false
+    },
+    "escrow_amount": {
+        "raw_name": "Tiền ký quỹ",
+        "dtype": "float",
+        "is_req": false
+    },
+    "buyer_username": {
+        "raw_name": "Người Mua",
+        "dtype": "string",
+        "is_req": false
+    },
+    "recipient_name": {
+        "raw_name": "Tên Người nhận",
+        "dtype": "string",
+        "is_req": false
+    },
+    "phone_number": {
+        "raw_name": "Số điện thoại",
+        "dtype": "string",
+        "is_req": false
+    },
+    "province_city": {
+        "raw_name": "Tỉnh/Thành phố",
+        "dtype": "string",
+        "is_req": false
+    },
+    "city_district": {
+        "raw_name": "TP / Quận / Huyện",
+        "dtype": "string",
+        "is_req": false
+    },
+    "district": {
+        "raw_name": "Quận",
+        "dtype": "string",
+        "is_req": false
+    },
+    "delivery_address": {
+        "raw_name": "Địa chỉ nhận hàng",
+        "dtype": "string",
+        "is_req": false
+    },
+    "country": {
+        "raw_name": "Quốc gia",
+        "dtype": "string",
+        "is_req": false
+    },
+    "note": {
+        "raw_name": "Ghi chú",
+        "dtype": "string",
+        "is_req": false
+    }
+}
