@@ -1,12 +1,13 @@
-from PySide6.QtWidgets import QMainWindow, QWidget, QTableView, QFileDialog, QVBoxLayout
+from PySide6.QtWidgets import QMainWindow, QWidget, QTableView, QFileDialog, QVBoxLayout, QToolBar
 from PySide6.QtCore import QSize
-from PySide6.QtGui import QAction
+from PySide6.QtGui import QAction, QIcon
 
-from sqlalchemy import select
+from sqlalchemy import select, delete
 
 from src.loader.file_loaders import ConfigLoader, OrderLoader
 from src.database.structure import ShopeeOrder
 from src.data_model.table_view_model import TableViewModel
+from resources import resources_rc
 
 
 class MainWindow(QMainWindow):
@@ -17,8 +18,9 @@ class MainWindow(QMainWindow):
         self.session = session
         self.order_data_model = None
 
-        # View model
+        # Data model và view model
         self.model = None
+        self.table_view = QTableView()
 
         # Đường dẫn gốc
         self.base_path = base_path
@@ -35,8 +37,24 @@ class MainWindow(QMainWindow):
         self.setWindowTitle("Cửa sổ chính")
         self.setMinimumSize(QSize(900, 600))
 
-        # View model
-        self.table_view = QTableView()
+        # Toolbar
+        toolbar = QToolBar()
+        toolbar.setIconSize(QSize(17, 17))
+        self.addToolBar(toolbar)
+
+        self.fetch_order_act = QAction(
+            QIcon(":/resource/icons/list-view.svg"),
+            "&Lấy dữ liệu",
+            self
+        )
+        toolbar.addAction(self.fetch_order_act)
+
+        self.delete_order_act = QAction(
+            QIcon(":/resource/icons/list-x.svg"),
+            "&Lấy dữ liệu",
+            self
+        )
+        toolbar.addAction(self.delete_order_act)
 
         # Thanh menu bar
         menu = self.menuBar()
@@ -46,6 +64,7 @@ class MainWindow(QMainWindow):
 
         # Action mở tệp đơn hàng
         self.open_file_act = QAction(
+            QIcon(":/resource/icons/file.svg"),
             "Mở tệp",
             self
         )
@@ -53,6 +72,7 @@ class MainWindow(QMainWindow):
 
         # Action mở thư mục chứa đơn hàng
         self.open_folder_act = QAction(
+            QIcon(":/resource/icons/folder.svg"),
             "Mở thư mục",
             self
         )
@@ -74,6 +94,8 @@ class MainWindow(QMainWindow):
         """
         self.open_file_act.triggered.connect(self.get_order_file)
         self.open_folder_act.triggered.connect(self.get_folder)
+        self.fetch_order_act.triggered.connect(self.fetch_order_data)
+        self.delete_order_act.triggered.connect(self.delete_order_data)
 
     def fetch_order_data(self):
         data = self.session.scalars(select(ShopeeOrder)).all()
@@ -84,6 +106,11 @@ class MainWindow(QMainWindow):
             column_names=columns
         )
         self.table_view.setModel(self.model)
+
+    def delete_order_data(self):
+        statement = delete(ShopeeOrder)
+        self.session.execute(statement)
+        self.session.commit()
 
     def get_order_file(self):
         """

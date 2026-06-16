@@ -1,0 +1,14 @@
+<!DOCTYPE RCC><RCC version="1.0">
+<qresource prefix="resource">
+    <file>icons/database-search.svg</file>
+    <file>icons/database.svg</file>
+    <file>icons/database-export.svg</file>
+    <file>icons/file.svg</file>
+    <file>icons/file-braces-corner.svg</file>
+    <file>icons/folder.svg</file>
+    <file>icons/list-plus.svg</file>
+    <file>icons/list-view.svg</file>
+    <file>icons/list-x.svg</file>
+    <file>icons/plus.svg</file>
+</qresource>
+</RCC>
