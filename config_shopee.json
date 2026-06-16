@@ -124,7 +124,7 @@
         "dtype": "string",
         "is_req": true
     },
-    "combo_variation_name": {
+    "variant_name": {
         "raw_name": "Tên phân loại hàng",
         "dtype": "string",
         "is_req": true

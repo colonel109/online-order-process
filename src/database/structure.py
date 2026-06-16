@@ -94,7 +94,7 @@ class ShopeeOrder(Base):
     total_weight = Column(Numeric(15, 2))
     warehouse_name = Column(String)
     combo_variation_sku = Column(String)
-    combo_variation_name = Column(String)
+    variant_name = Column(String)
     owned_by_shopee = Column(String)
     original_price = Column(Numeric(15, 2))
     seller_subsidy = Column(Numeric(15, 2))
