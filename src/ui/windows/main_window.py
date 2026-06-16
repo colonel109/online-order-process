@@ -86,6 +86,9 @@ class MainWindow(QMainWindow):
         self.table_view.setModel(self.model)
 
     def get_order_file(self):
+        """
+        Hàm này lấy đường dẫn của các tệp đơn hàng được chọn
+        """
         filters = "Tệp Excel (*.xlsx; *.xls);; Tệp Csv (*.csv);; Tất cả các tệp (*)"
         selected_files, file_type = QFileDialog.getOpenFileNames(
             self,
@@ -98,6 +101,9 @@ class MainWindow(QMainWindow):
         self.fetch_order_data()
 
     def get_folder(self):
+        """
+        Hàm này lấy đường dẫn của thư mục được chọn và trích xuất đường dẫn của các file trong đó
+        """
         selected_folder = QFileDialog.getExistingDirectory(
             self,
             caption="Chọn thư mục",

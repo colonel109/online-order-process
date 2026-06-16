@@ -21,6 +21,8 @@ class OrderLoader:
         Hàm này nhận danh sách các tệp được người dùng chọn từ dialog
         """
         dfs = []
+        if not file_path:
+            return None
 
         for file in file_path:
             try:
