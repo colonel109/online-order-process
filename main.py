@@ -13,6 +13,6 @@ DATABASE_PATH = Path(BASE_PATH / "database.sqlite3")
 session = db_connector(DATABASE_PATH)
 
 app = QApplication(sys.argv)
-window = MainWindow(session=session)
+window = MainWindow(session=session, base_path=BASE_PATH)
 window.show()
 app.exec()
