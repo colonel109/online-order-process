@@ -19,17 +19,16 @@ class MainWindow(QMainWindow):
         self.order_data_model = None
 
         # Data model và view model
-        self.model = None
-        self.table_view = QTableView()
+        self.table_view = QTableView() # Tạo view model
 
         # Đường dẫn gốc
         self.base_path = base_path
 
         # Khởi tạo các loader
-        self.config = ConfigLoader(config_file=base_path / "config_shopee.json")
-        self.order = OrderLoader(
-            rename_dict=self.config.get_rename_dict(),
-            dtype_dict=self.config.get_dtype_dict(),
+        self.config_loader = ConfigLoader(config_file=base_path / "config_shopee.json")
+        self.order_loader = OrderLoader(
+            rename_dict=self.config_loader.get_rename_dict(),
+            dtype_dict=self.config_loader.get_dtype_dict(),
             db_path=base_path / "database.sqlite3"
         )
 
@@ -51,7 +50,7 @@ class MainWindow(QMainWindow):
 
         self.delete_order_act = QAction(
             QIcon(":/resource/icons/list-x.svg"),
-            "&Lấy dữ liệu",
+            "&Xoá dữ liệu",
             self
         )
         toolbar.addAction(self.delete_order_act)
@@ -101,16 +100,19 @@ class MainWindow(QMainWindow):
         data = self.session.scalars(select(ShopeeOrder)).all()
         columns = ["order_id", "package_id", "order_date", "order_status", "combo_name", "variant_name",
                     "deal_price", "quantity","total_buyer_payment_amount", "source_file"]
-        self.model = TableViewModel(
+        self.order_data_model = TableViewModel(
             data=data,
             column_names=columns
         )
-        self.table_view.setModel(self.model)
+        self.table_view.setModel(self.order_data_model)
 
     def delete_order_data(self):
         statement = delete(ShopeeOrder)
         self.session.execute(statement)
         self.session.commit()
+
+        data = self.session.scalars(select(ShopeeOrder)).all()
+        self.order_data_model.refresh_data(data)
 
     def get_order_file(self):
         """
@@ -123,8 +125,8 @@ class MainWindow(QMainWindow):
             dir=str(self.base_path),
             filter=filters
         )
-        self.order.data_processor(selected_files)
-        self.order.load_data()
+        self.order_loader.data_processor(selected_files)
+        self.order_loader.load_data()
         self.fetch_order_data()
 
     def get_folder(self):
@@ -137,7 +139,7 @@ class MainWindow(QMainWindow):
             dir=str(self.base_path)
         )
         # Lấy danh sách file từ dir vừa chọn
-        file_list = self.order.dir_to_list(selected_folder)
-        self.order.data_processor(file_list)
-        self.order.load_data()
+        file_list = self.order_loader.dir_to_list(selected_folder)
+        self.order_loader.data_processor(file_list)
+        self.order_loader.load_data()
         self.fetch_order_data()

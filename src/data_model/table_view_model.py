@@ -5,7 +5,7 @@ class TableViewModel(QAbstractTableModel):
     """
     Class này có vai trò là model cho tất cả các view có dạng bảng
     """
-    def __init__(self, data, column_names):
+    def __init__(self, data, column_names: list):
         super().__init__()
         self._data = data
         self._column_names = column_names
@@ -38,12 +38,14 @@ class TableViewModel(QAbstractTableModel):
                     break
             return str(value) if value is not None else ""
 
-            value = getattr(row_data, col_attr, "")
-            return str(value)
-
     def headerData(self, section, orientation, /, role = ...):
         if role == Qt.ItemDataRole.DisplayRole:
             if orientation == Qt.Orientation.Horizontal:
                 return self._column_names[section]
             return str(section + 1)
         return None
+    
+    def refresh_data(self, new_data):
+        self.beginResetModel()
+        self._data = new_data
+        self.endResetModel()
