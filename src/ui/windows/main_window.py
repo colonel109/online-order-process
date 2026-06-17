@@ -1,4 +1,4 @@
-from PySide6.QtWidgets import QMainWindow, QWidget, QTableView, QFileDialog, QVBoxLayout, QToolBar
+from PySide6.QtWidgets import QMainWindow, QWidget, QTableView, QFileDialog, QVBoxLayout, QToolBar, QStackedLayout
 from PySide6.QtCore import QSize
 from PySide6.QtGui import QAction, QIcon
 
@@ -36,25 +36,35 @@ class MainWindow(QMainWindow):
         self.setWindowTitle("Cửa sổ chính")
         self.setMinimumSize(QSize(900, 600))
 
-        # Toolbar
-        toolbar = QToolBar()
-        toolbar.setIconSize(QSize(17, 17))
-        self.addToolBar(toolbar)
-
+        # Thanh công cụ
         self.fetch_order_act = QAction(
             QIcon(":/resource/icons/list-view.svg"),
-            "&Lấy dữ liệu",
+            "Lấy dữ liệu",
             self
         )
-        toolbar.addAction(self.fetch_order_act)
 
         self.delete_order_act = QAction(
             QIcon(":/resource/icons/list-x.svg"),
-            "&Xoá dữ liệu",
+            "Xoá dữ liệu",
             self
         )
         self.delete_order_act.setEnabled(False)
+
+        self.begin_process_data_act = QAction(
+            QIcon(":/resource/icons/square-chevron-right.svg"),
+            "Bắt đầu xử lí dữ liệu",
+            self
+        )
+        
+        toolbar = QToolBar()
+        toolbar.setIconSize(QSize(17, 17))
+
+        toolbar.addAction(self.fetch_order_act)
         toolbar.addAction(self.delete_order_act)
+        toolbar.addSeparator()
+        toolbar.addAction(self.begin_process_data_act)
+
+        self.addToolBar(toolbar)
 
         # Thanh menu bar
         menu = self.menuBar()
@@ -98,13 +108,37 @@ class MainWindow(QMainWindow):
         self.delete_order_act.triggered.connect(self.delete_order_data)
 
     def fetch_order_data(self):
-        data = self.session.scalars(select(ShopeeOrder)).all()
+        """
+        Hàm này có nhiệm vụ lấy thông tin từ bảng shopee_orders sau đó lấy các list chứa những combo, variant và price độc nhất để truyền vào view model
+        """
+
+        # Lấy data set chứa toàn bộ thông tin cần thiết từ bảng shopee_orders
+        data_orders = self.session.scalars(select(ShopeeOrder)).all()
+        
+        if not data_orders:
+            return
+        
+        # Truyền vào view model, đây là bảng đơn hàng gốc
         columns = ["order_id", "package_id", "order_date", "order_status", "combo_name", "variant_name",
                     "deal_price", "quantity","total_buyer_payment_amount", "source_file"]
         self.order_data_model = TableViewModel(
-            data=data,
+            data=data_orders,
             column_names=columns
         )
+
+        # Tạo một instance mới chứa thông tin về các combo, variant, price độc nhất
+        data_cvp_set = set() # Tạo một set hứng các giá trị từ data_orders 
+        for object in data_orders:
+            data_cvp_set.add((object.combo_name, object.variant_name, object.deal_price))
+
+        data_cvp_list = list(data_cvp_set)     
+        
+        self.combo_variant_model = TableViewModel(
+            data=data_cvp_list,
+            column_names=["combo_name", "variant_name", "deal_price"] 
+        )
+
+        # Set model cho view chính
         self.table_view.setModel(self.order_data_model)
         self.delete_order_act.setEnabled(True)
 
