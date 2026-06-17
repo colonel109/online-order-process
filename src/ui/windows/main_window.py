@@ -55,6 +55,7 @@ class MainWindow(QMainWindow):
             "Bắt đầu xử lí dữ liệu",
             self
         )
+        self.begin_process_data_act.setEnabled(False)
         
         toolbar = QToolBar()
         toolbar.setIconSize(QSize(17, 17))
@@ -140,7 +141,10 @@ class MainWindow(QMainWindow):
 
         # Set model cho view chính
         self.table_view.setModel(self.order_data_model)
+
+        # Thay đổi trạng thái của các nút khác
         self.delete_order_act.setEnabled(True)
+        self.begin_process_data_act.setEnabled(True)
 
     def delete_order_data(self):
         statement = delete(ShopeeOrder)
@@ -149,7 +153,10 @@ class MainWindow(QMainWindow):
 
         data = self.session.scalars(select(ShopeeOrder)).all()
         self.order_data_model.refresh_data(data)
+
+        # Đổi trạng thái của các nút khác
         self.delete_order_act.setEnabled(False)
+        self.begin_process_data_act.setEnabled(False)
 
     def get_order_file(self):
         """
@@ -166,6 +173,9 @@ class MainWindow(QMainWindow):
         self.order_loader.load_data()
         self.fetch_order_data()
 
+        # Thay đổi trạng thái của các nút khác
+        self.begin_process_data_act.setEnabled(True)
+
     def get_folder(self):
         """
         Hàm này lấy đường dẫn của thư mục được chọn và trích xuất đường dẫn của các file trong đó
@@ -180,3 +190,6 @@ class MainWindow(QMainWindow):
         self.order_loader.data_processor(file_list)
         self.order_loader.load_data()
         self.fetch_order_data()
+
+        # Thay đổi trạng thái của các nút khác
+        self.begin_process_data_act.setEnabled(True)
