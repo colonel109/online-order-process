@@ -53,6 +53,7 @@ class MainWindow(QMainWindow):
             "&Xoá dữ liệu",
             self
         )
+        self.delete_order_act.setEnabled(False)
         toolbar.addAction(self.delete_order_act)
 
         # Thanh menu bar
@@ -105,6 +106,7 @@ class MainWindow(QMainWindow):
             column_names=columns
         )
         self.table_view.setModel(self.order_data_model)
+        self.delete_order_act.setEnabled(True)
 
     def delete_order_data(self):
         statement = delete(ShopeeOrder)
@@ -113,6 +115,7 @@ class MainWindow(QMainWindow):
 
         data = self.session.scalars(select(ShopeeOrder)).all()
         self.order_data_model.refresh_data(data)
+        self.delete_order_act.setEnabled(False)
 
     def get_order_file(self):
         """
