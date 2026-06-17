@@ -7,8 +7,5 @@ wheels/
 *.egg-info
 .idea
 
-# Test folder
-/test
-
 # Virtual environments
 .venv
