@@ -8,6 +8,8 @@ from src.loader.file_loaders import ConfigLoader, OrderLoader
 from src.database.structure import ShopeeOrder
 from src.data_model.table_view_model import TableViewModel
 from resources import resources_rc
+from src.ui.widgets.order_display import OrderDisplayer
+from src.ui.widgets.import_mask import ImportMask
 
 
 class MainWindow(QMainWindow):
@@ -16,10 +18,10 @@ class MainWindow(QMainWindow):
 
         # Kết nối với database
         self.session = session
-        self.order_data_model = None
 
-        # Data model và view model
-        self.table_view = QTableView() # Tạo view model
+        # Các layout của main windows
+        self.order_display_widget = OrderDisplayer(session=self.session)
+        self.import_mask = ImportMask()
 
         # Đường dẫn gốc
         self.base_path = base_path
@@ -37,30 +39,21 @@ class MainWindow(QMainWindow):
         self.setMinimumSize(QSize(900, 600))
 
         # Thanh công cụ
-        self.fetch_order_act = QAction(
-            QIcon(":/resource/icons/list-view.svg"),
-            "Lấy dữ liệu",
-            self
-        )
-
         self.delete_order_act = QAction(
             QIcon(":/resource/icons/list-x.svg"),
             "Xoá dữ liệu",
             self
         )
-        self.delete_order_act.setEnabled(False)
 
         self.begin_process_data_act = QAction(
             QIcon(":/resource/icons/square-chevron-right.svg"),
             "Bắt đầu xử lí dữ liệu",
             self
         )
-        self.begin_process_data_act.setEnabled(False)
         
         toolbar = QToolBar()
         toolbar.setIconSize(QSize(17, 17))
 
-        toolbar.addAction(self.fetch_order_act)
         toolbar.addAction(self.delete_order_act)
         toolbar.addSeparator()
         toolbar.addAction(self.begin_process_data_act)
@@ -90,73 +83,51 @@ class MainWindow(QMainWindow):
         file_menu.addAction(self.open_folder_act)
 
         # Container chính
-        main_layout = QVBoxLayout()
-        main_layout.addWidget(self.table_view)
+        self.main_layout = QStackedLayout()
+        self.main_layout.addWidget(self.import_mask)
+        self.main_layout.addWidget(self.order_display_widget)
         container = QWidget()
-        container.setLayout(main_layout)
+        container.setLayout(self.main_layout)
         self.setCentralWidget(container)
 
-        # Kết nối slot với signal
+        # Chạy hàm 
         self.init_signal()
+        self.change_btn_state()
+        self.order_display_widget.fetch_order_data()
+
+
+    def change_btn_state(self):
+        stmt = select(ShopeeOrder).exists()
+        result = self.session.scalar(select(stmt))
+
+        buttons = [self.delete_order_act, self.begin_process_data_act]
+
+        for btn in buttons:
+            if not result:
+                btn.setEnabled(False)           
+                self.main_layout.setCurrentIndex(0)
+
+            else:
+                self.main_layout.setCurrentIndex(1)
+                btn.setEnabled(True)
 
     def init_signal(self):
         """
         Hàm này có nhiệm vụ kết nối slot với signal
         """
+        self.import_mask.import_file_btn.clicked.connect(self.get_order_file)
+        self.import_mask.import_folder_btn.clicked.connect(self.get_folder)
         self.open_file_act.triggered.connect(self.get_order_file)
         self.open_folder_act.triggered.connect(self.get_folder)
-        self.fetch_order_act.triggered.connect(self.fetch_order_data)
         self.delete_order_act.triggered.connect(self.delete_order_data)
 
-    def fetch_order_data(self):
-        """
-        Hàm này có nhiệm vụ lấy thông tin từ bảng shopee_orders sau đó lấy các list chứa những combo, variant và price độc nhất để truyền vào view model
-        """
-
-        # Lấy data set chứa toàn bộ thông tin cần thiết từ bảng shopee_orders
-        data_orders = self.session.scalars(select(ShopeeOrder)).all()
-        
-        if not data_orders:
-            return
-        
-        # Truyền vào view model, đây là bảng đơn hàng gốc
-        columns = ["order_id", "package_id", "order_date", "order_status", "combo_name", "variant_name",
-                    "deal_price", "quantity","total_buyer_payment_amount", "source_file"]
-        self.order_data_model = TableViewModel(
-            data=data_orders,
-            column_names=columns
-        )
-
-        # Tạo một instance mới chứa thông tin về các combo, variant, price độc nhất
-        data_cvp_set = set() # Tạo một set hứng các giá trị từ data_orders 
-        for object in data_orders:
-            data_cvp_set.add((object.combo_name, object.variant_name, object.deal_price))
-
-        data_cvp_list = list(data_cvp_set)     
-        
-        self.combo_variant_model = TableViewModel(
-            data=data_cvp_list,
-            column_names=["combo_name", "variant_name", "deal_price"] 
-        )
-
-        # Set model cho view chính
-        self.table_view.setModel(self.order_data_model)
-
-        # Thay đổi trạng thái của các nút khác
-        self.delete_order_act.setEnabled(True)
-        self.begin_process_data_act.setEnabled(True)
+        self.delete_order_act.triggered.connect(self.change_btn_state)
 
     def delete_order_data(self):
         statement = delete(ShopeeOrder)
         self.session.execute(statement)
         self.session.commit()
-
-        data = self.session.scalars(select(ShopeeOrder)).all()
-        self.order_data_model.refresh_data(data)
-
-        # Đổi trạng thái của các nút khác
-        self.delete_order_act.setEnabled(False)
-        self.begin_process_data_act.setEnabled(False)
+        self.change_btn_state()
 
     def get_order_file(self):
         """
@@ -171,10 +142,8 @@ class MainWindow(QMainWindow):
         )
         self.order_loader.data_processor(selected_files)
         self.order_loader.load_data()
-        self.fetch_order_data()
-
-        # Thay đổi trạng thái của các nút khác
-        self.begin_process_data_act.setEnabled(True)
+        self.order_display_widget.fetch_order_data()
+        self.change_btn_state()
 
     def get_folder(self):
         """
@@ -189,7 +158,5 @@ class MainWindow(QMainWindow):
         file_list = self.order_loader.dir_to_list(selected_folder)
         self.order_loader.data_processor(file_list)
         self.order_loader.load_data()
-        self.fetch_order_data()
-
-        # Thay đổi trạng thái của các nút khác
-        self.begin_process_data_act.setEnabled(True)
+        self.order_display_widget.fetch_order_data()
+        self.change_btn_state()
