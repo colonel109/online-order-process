@@ -24,7 +24,6 @@ class ImportMask(QWidget):
         self.get_folder_dialog = OpenOrderFolder(base_path=self.base_path)
 
         self.import_file_btn = QPushButton("Mở tệp")
-        file_btn_layout = QHBoxLayout()
 
         self.import_folder_btn = QPushButton("Mở thư mục")
         label = QLabel("<b>Không tìm thấy dữ liệu đơn hàng, vui lòng nhập dữ liệu:</b>")
@@ -36,14 +35,7 @@ class ImportMask(QWidget):
 
         container = QFrame()
         container.setObjectName("child_container")
-        # container.setStyleSheet(
-        #     """
-        #     QFrame#child_container {
-        #         border: 0.5px solid #e0dcce;
-        #         border-radius: 15px;
-        #     }
-        #     """
-        # )
+
         container.setLayout(container_layout)
         
         main_layout = QGridLayout()

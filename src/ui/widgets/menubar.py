@@ -28,7 +28,7 @@ class Menubar(QMenuBar):
 
         # Action mở tệp đơn hàng
         self.open_file_act = QAction(
-            QIcon(":/resource/icons/file.svg"),
+            QIcon(":/resource/icons/file-plus-corner.svg"),
             "Mở tệp",
             self
         )
@@ -37,7 +37,7 @@ class Menubar(QMenuBar):
 
         # Action mở thư mục chứa đơn hàng
         self.open_folder_act = QAction(
-            QIcon(":/resource/icons/folder.svg"),
+            QIcon(":/resource/icons/folder-plus.svg"),
             "Mở thư mục",
             self
         )
