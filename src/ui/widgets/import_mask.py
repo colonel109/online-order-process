@@ -1,8 +1,9 @@
-from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel, QPushButton
-from PySide6.QtCore import Signal
+from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel, QPushButton, QGridLayout, QHBoxLayout, QFrame
+from PySide6.QtCore import Signal, Qt
 
 from src.ui.dialogs.open_file_folder import OpenOrderFile, OpenOrderFolder
-from src.processors.file_loaders import OrderLoader
+from resources import resources_rc
+
 
 class ImportMask(QWidget):
     """
@@ -23,15 +24,33 @@ class ImportMask(QWidget):
         self.get_folder_dialog = OpenOrderFolder(base_path=self.base_path)
 
         self.import_file_btn = QPushButton("Mở tệp")
+        file_btn_layout = QHBoxLayout()
+
         self.import_folder_btn = QPushButton("Mở thư mục")
-        label = QLabel("Chưa có dữ liệu, vui lòng thêm dữ liệu")
+        label = QLabel("<b>Không tìm thấy dữ liệu đơn hàng, vui lòng nhập dữ liệu:</b>")
 
-        layout = QVBoxLayout()
-        layout.addWidget(label)
-        layout.addWidget(self.import_file_btn)
-        layout.addWidget(self.import_folder_btn)
-        self.setLayout(layout)
+        container_layout = QVBoxLayout()
+        container_layout.addWidget(label)
+        container_layout.addWidget(self.import_file_btn)
+        container_layout.addWidget(self.import_folder_btn)
 
+        container = QFrame()
+        container.setObjectName("child_container")
+        # container.setStyleSheet(
+        #     """
+        #     QFrame#child_container {
+        #         border: 0.5px solid #e0dcce;
+        #         border-radius: 15px;
+        #     }
+        #     """
+        # )
+        container.setLayout(container_layout)
+        
+        main_layout = QGridLayout()
+        main_layout.addWidget(container, 0, 0, Qt.AlignmentFlag.AlignCenter)
+        self.setLayout(main_layout)
+
+        # Kết nối tín hiệu
         self.init_signal()
 
     def init_signal(self):
