@@ -7,14 +7,6 @@ class OrderLoader:
         self.rename_dict = rename_dict
         self.dtype_dict = dtype_dict
         self.db_path = db_path
-        self._data = pd.DataFrame()
-
-    @staticmethod
-    def dir_to_list(directory):
-        if Path(directory).is_dir:
-            paths = [file for file in Path(directory).glob("*")]
-            return paths
-        return None
 
     def data_processor(self, file_path: list):
         """
@@ -41,6 +33,7 @@ class OrderLoader:
 
             except Exception as e:
                 print(e)
+        
         df_concat = pd.concat(dfs)
         for col, dtype in self.dtype_dict.items():
             if col in df_concat.columns:
@@ -51,13 +44,9 @@ class OrderLoader:
                 elif dtype == "datetime":
                     df_concat[col] = pd.to_datetime(df_concat[col], errors="raise")
 
-        self._data = df_concat
-        return self._data
-
-    def load_data(self):
         try:
             with sqlite3.connect(self.db_path) as conn:
-                self._data.to_sql(
+                df_concat.to_sql(
                     con = conn,
                     name="shopee_orders",
                     index=False,

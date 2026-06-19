@@ -1,26 +1,30 @@
 from PySide6.QtWidgets import QMenuBar, QFileDialog
 from PySide6.QtGui import QAction, QIcon
+from PySide6.QtCore import Signal
 
+from src.ui.dialogs.open_file_folder import OpenOrderFile, OpenOrderFolder
 from resources import resources_rc
-from src.loader.file_loaders import ConfigLoader, OrderLoader
 
 class Menubar(QMenuBar):
+    """
+    Class này chỉ đóng vai trò ghi list các file mà người dùng chọn, loader ở mainwindow sẽ truy cập
+    biến đó và xử lí tiếp dữ liệu
+    """
+    # Phát và gửi kèm danh sách file với tín hiệu khi người dùng chọn xong
+    file_selected_signal = Signal(list)
+
     def __init__(self, base_path):
         super().__init__()
 
-        # Lấy đường dẫn gốcs
+        # Đường dẫn
         self.base_path = base_path
-
-        # Khởi tạo các loader
-        self.config_loader = ConfigLoader(config_file=self.base_path / "config_shopee.json")
-        self.order_loader = OrderLoader(
-            rename_dict=self.config_loader.get_rename_dict(),
-            dtype_dict=self.config_loader.get_dtype_dict(),
-            db_path=self.base_path / "database.sqlite3"
-        )
 
         # File menu
         file_menu = self.addMenu("Tệp")
+
+        # Các dialog mở file và folder 
+        self.get_file_dialog = OpenOrderFile(base_path=self.base_path)
+        self.get_folder_dialog = OpenOrderFolder(base_path=self.base_path)
 
         # Action mở tệp đơn hàng
         self.open_file_act = QAction(
@@ -40,37 +44,18 @@ class Menubar(QMenuBar):
         self.open_folder_act.setStatusTip("Lấy dữ liệu từ tất cả các tệp đơn hàng cùng loại trong một thư mục")
         file_menu.addAction(self.open_folder_act)
 
-        # Kết nối tín hiệu
         self.init_signal()
 
     def init_signal(self):
-        self.open_file_act.triggered.connect(self.get_file)
-        self.open_folder_act.triggered.connect(self.get_folder)
+        self.open_file_act.triggered.connect(self.open_file_dialog)
+        self.open_folder_act.triggered.connect(self.open_folder_dialog)
 
-    def get_file(self):
-        """
-        Hàm này lấy đường dẫn của các tệp đơn hàng được chọn
-        """
-        filters = "Tệp Excel (*.xlsx; *.xls);; Tệp Csv (*.csv);; Tất cả các tệp (*)"
-        selected_files, file_type = QFileDialog.getOpenFileNames(
-            self,
-            caption="Chọn tệp",
-            dir=str(self.base_path),
-            filter=filters
-        )
-        self.order_loader.data_processor(selected_files)
-        self.order_loader.load_data()
+    def open_file_dialog(self):
+        selected_files = self.get_file_dialog.get_file_list()
+        if selected_files:
+            self.file_selected_signal.emit(selected_files)
 
-    def get_folder(self):
-        """
-        Hàm này lấy đường dẫn của thư mục được chọn và trích xuất đường dẫn của các file trong đó
-        """
-        selected_folder = QFileDialog.getExistingDirectory(
-            self,
-            caption="Chọn thư mục",
-            dir=str(self.base_path)
-        )
-        # Lấy danh sách file từ dir vừa chọn
-        file_list = self.order_loader.dir_to_list(selected_folder)
-        self.order_loader.data_processor(file_list)
-        self.order_loader.load_data()
+    def open_folder_dialog(self):
+        selected_files = self.get_folder_dialog.get_file_list()
+        if selected_files:
+            self.file_selected_signal.emit(selected_files)

@@ -1,5 +1,6 @@
-from PySide6.QtWidgets import QMainWindow, QWidget, QFileDialog, QStackedLayout
+from PySide6.QtWidgets import QMainWindow, QWidget, QStackedLayout
 from PySide6.QtCore import QSize
+from pathlib import Path
 
 from sqlalchemy import select
 
@@ -10,21 +11,32 @@ from src.ui.widgets.import_mask import ImportMask
 from src.ui.widgets.toolbar import Toolbar 
 from src.ui.widgets.menubar import Menubar
 from src.ui.widgets.statusbar import StatusBar
+from src.processors.file_loaders import ConfigLoader, OrderLoader
 
 
 class MainWindow(QMainWindow):
-    def __init__(self, session, base_path):
+    def __init__(self, session, base_path, config_path, database_path):
         super().__init__()
 
-        # Đường dẫn gốc
+        # Đường dẫn
         self.base_path = base_path
-        
+        self.config_path = config_path 
+        self.database_path = database_path 
+
         # Kết nối với database
         self.session = session
 
+        # Khởi tạo các loader
+        self.config_loader = ConfigLoader(config_file=self.config_path)
+        self.order_loader = OrderLoader(
+            rename_dict=self.config_loader.get_rename_dict(),
+            dtype_dict=self.config_loader.get_dtype_dict(),
+            db_path=self.database_path
+        )
+
         # Thành phần UI
         self.order_display_widget = OrderDisplayer(session=self.session)
-        self.import_mask_widget = ImportMask()
+        self.import_mask_widget = ImportMask(base_path=self.base_path)
         
         self.menubar = Menubar(base_path=self.base_path)
         self.toolbar = Toolbar(session)
@@ -48,8 +60,6 @@ class MainWindow(QMainWindow):
         # Chạy hàm 
         self.init_signal()
         self.change_window_state()
-        self.order_display_widget.fetch_order_data()
-
 
     def change_window_state(self):
         stmt = select(ShopeeOrder).exists()
@@ -63,7 +73,7 @@ class MainWindow(QMainWindow):
                 self.main_layout.setCurrentIndex(0)
 
             else:
-                self.order_display_widget.fetch_order_data()
+                self.order_display_widget.set_model()
                 self.main_layout.setCurrentIndex(1)
                 btn.setEnabled(True)
 
@@ -71,6 +81,10 @@ class MainWindow(QMainWindow):
         """
         Hàm này có nhiệm vụ kết nối slot với signal
         """
-        self.menubar.open_file_act.triggered.connect(self.change_window_state)
-        self.menubar.open_folder_act.triggered.connect(self.change_window_state)
         self.toolbar.delete_order_act.triggered.connect(self.change_window_state)
+        self.menubar.file_selected_signal.connect(self.process_imported_files)
+        self.import_mask_widget.file_selected_signal.connect(self.process_imported_files)
+
+    def process_imported_files(self, paths):
+        self.order_loader.data_processor(paths)
+        self.change_window_state()
