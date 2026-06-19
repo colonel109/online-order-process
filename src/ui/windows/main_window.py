@@ -1,31 +1,33 @@
-from PySide6.QtWidgets import QMainWindow, QWidget, QTableView, QFileDialog, QVBoxLayout, QToolBar, QStackedLayout
+from PySide6.QtWidgets import QMainWindow, QWidget, QFileDialog, QStackedLayout
 from PySide6.QtCore import QSize
 from PySide6.QtGui import QAction, QIcon
 
-from sqlalchemy import select, delete
+from sqlalchemy import select
 
 from src.loader.file_loaders import ConfigLoader, OrderLoader
 from src.database.structure import ShopeeOrder
-from src.data_model.table_view_model import TableViewModel
 from resources import resources_rc
 from src.ui.widgets.order_display import OrderDisplayer
 from src.ui.widgets.import_mask import ImportMask
+from src.ui.widgets.toolbar import Toolbar 
 
 
 class MainWindow(QMainWindow):
     def __init__(self, session, base_path):
         super().__init__()
 
+        # Đường dẫn gốc
+        self.base_path = base_path
+        
         # Kết nối với database
         self.session = session
 
-        # Các layout của main windows
+        # Thành phần UI
         self.order_display_widget = OrderDisplayer(session=self.session)
-        self.import_mask = ImportMask()
-
-        # Đường dẫn gốc
-        self.base_path = base_path
-
+        self.import_mask_widget = ImportMask()
+        
+        self.toolbar = Toolbar(session)
+     
         # Khởi tạo các loader
         self.config_loader = ConfigLoader(config_file=base_path / "config_shopee.json")
         self.order_loader = OrderLoader(
@@ -37,28 +39,6 @@ class MainWindow(QMainWindow):
         # Kích cỡ cửa sổ
         self.setWindowTitle("Cửa sổ chính")
         self.setMinimumSize(QSize(900, 600))
-
-        # Thanh công cụ
-        self.delete_order_act = QAction(
-            QIcon(":/resource/icons/list-x.svg"),
-            "Xoá dữ liệu",
-            self
-        )
-
-        self.begin_process_data_act = QAction(
-            QIcon(":/resource/icons/square-chevron-right.svg"),
-            "Bắt đầu xử lí dữ liệu",
-            self
-        )
-        
-        toolbar = QToolBar()
-        toolbar.setIconSize(QSize(17, 17))
-
-        toolbar.addAction(self.delete_order_act)
-        toolbar.addSeparator()
-        toolbar.addAction(self.begin_process_data_act)
-
-        self.addToolBar(toolbar)
 
         # Thanh menu bar
         menu = self.menuBar()
@@ -83,8 +63,9 @@ class MainWindow(QMainWindow):
         file_menu.addAction(self.open_folder_act)
 
         # Container chính
+        self.addToolBar(self.toolbar)
         self.main_layout = QStackedLayout()
-        self.main_layout.addWidget(self.import_mask)
+        self.main_layout.addWidget(self.import_mask_widget)
         self.main_layout.addWidget(self.order_display_widget)
         container = QWidget()
         container.setLayout(self.main_layout)
@@ -100,7 +81,7 @@ class MainWindow(QMainWindow):
         stmt = select(ShopeeOrder).exists()
         result = self.session.scalar(select(stmt))
 
-        buttons = [self.delete_order_act, self.begin_process_data_act]
+        buttons = [self.toolbar.delete_order_act, self.toolbar.begin_process_data_act]
 
         for btn in buttons:
             if not result:
@@ -115,19 +96,12 @@ class MainWindow(QMainWindow):
         """
         Hàm này có nhiệm vụ kết nối slot với signal
         """
-        self.import_mask.import_file_btn.clicked.connect(self.get_order_file)
-        self.import_mask.import_folder_btn.clicked.connect(self.get_folder)
+        self.import_mask_widget.import_file_btn.clicked.connect(self.get_order_file)
+        self.import_mask_widget.import_folder_btn.clicked.connect(self.get_folder)
         self.open_file_act.triggered.connect(self.get_order_file)
         self.open_folder_act.triggered.connect(self.get_folder)
-        self.delete_order_act.triggered.connect(self.delete_order_data)
 
-        self.delete_order_act.triggered.connect(self.change_btn_state)
-
-    def delete_order_data(self):
-        statement = delete(ShopeeOrder)
-        self.session.execute(statement)
-        self.session.commit()
-        self.change_btn_state()
+        self.toolbar.delete_order_act.triggered.connect(self.change_btn_state)
 
     def get_order_file(self):
         """
