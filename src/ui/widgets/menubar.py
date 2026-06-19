@@ -28,6 +28,7 @@ class Menubar(QMenuBar):
             "Mở tệp",
             self
         )
+        self.open_file_act.setStatusTip("Lấy dữ liệu đơn hàng từ một hoặc nhiều tệp cùng loại")
         file_menu.addAction(self.open_file_act)
 
         # Action mở thư mục chứa đơn hàng
@@ -36,6 +37,7 @@ class Menubar(QMenuBar):
             "Mở thư mục",
             self
         )
+        self.open_folder_act.setStatusTip("Lấy dữ liệu từ tất cả các tệp đơn hàng cùng loại trong một thư mục")
         file_menu.addAction(self.open_folder_act)
 
         # Kết nối tín hiệu

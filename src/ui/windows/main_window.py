@@ -9,6 +9,7 @@ from src.ui.widgets.order_display import OrderDisplayer
 from src.ui.widgets.import_mask import ImportMask
 from src.ui.widgets.toolbar import Toolbar 
 from src.ui.widgets.menubar import Menubar
+from src.ui.widgets.statusbar import StatusBar
 
 
 class MainWindow(QMainWindow):
@@ -27,6 +28,7 @@ class MainWindow(QMainWindow):
         
         self.menubar = Menubar(base_path=self.base_path)
         self.toolbar = Toolbar(session)
+        self.statusbar = StatusBar()
 
         # Kích cỡ cửa sổ
         self.setWindowTitle("Cửa sổ chính")
@@ -35,6 +37,7 @@ class MainWindow(QMainWindow):
         # Container chính
         self.setMenuBar(self.menubar)
         self.addToolBar(self.toolbar)
+        self.setStatusBar(self.statusbar)
         self.main_layout = QStackedLayout()
         self.main_layout.addWidget(self.import_mask_widget)
         self.main_layout.addWidget(self.order_display_widget)

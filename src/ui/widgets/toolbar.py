@@ -20,13 +20,15 @@ class Toolbar(QToolBar):
             QIcon(":/resource/icons/list-x.svg"),
             "Xoá dữ liệu",
             self
-        )
+        ) 
+        self.delete_order_act.setStatusTip("Xoá dữ liệu đơn hàng trong cơ sở dữ liệu")
 
         self.begin_process_data_act = QAction(
             QIcon(":/resource/icons/square-chevron-right.svg"),
             "Bắt đầu xử lí dữ liệu",
             self
         )
+        self.begin_process_data_act.setStatusTip("Bắt đầu quy trình xử lí các đơn hàng đang được hiển thị trên màn hình")
        
         # Thanh công cụ
         self.setIconSize(QSize(17, 17))
