@@ -28,7 +28,7 @@ class MainWindow(QMainWindow):
         self.session = session
 
         # Cửa sổ xử lí dữ liệu
-        self.data_process_window = DataProcessWindow(session=self.session)
+        self.data_process_window = None
 
         # Khởi tạo các loader
         self.config_loader = ConfigLoader(config_file=self.config_path)
@@ -95,5 +95,5 @@ class MainWindow(QMainWindow):
         self.change_window_state()
 
     def open_data_process_window(self):
-        if self.data_process_window.isHidden():
-            self.data_process_window.show()
+        self.data_process_window = DataProcessWindow(session=self.session)
+        self.data_process_window.show()
