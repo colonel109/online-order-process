@@ -12,6 +12,7 @@ from src.ui.widgets.toolbar import Toolbar
 from src.ui.widgets.menubar import Menubar
 from src.ui.widgets.statusbar import StatusBar
 from src.processors.file_loaders import ConfigLoader, OrderLoader
+from src.ui.windows.data_process_window import DataProcessWindow
 
 
 class MainWindow(QMainWindow):
@@ -25,6 +26,9 @@ class MainWindow(QMainWindow):
 
         # Kết nối với database
         self.session = session
+
+        # Cửa sổ xử lí dữ liệu
+        self.data_process_window = DataProcessWindow(session=self.session)
 
         # Khởi tạo các loader
         self.config_loader = ConfigLoader(config_file=self.config_path)
@@ -44,7 +48,7 @@ class MainWindow(QMainWindow):
 
         # Kích cỡ cửa sổ
         self.setWindowTitle("Cửa sổ chính")
-        self.setMinimumSize(QSize(900, 600))
+        self.setMinimumSize(QSize(1200, 800))
 
         # Container chính
         self.setMenuBar(self.menubar)
@@ -84,7 +88,12 @@ class MainWindow(QMainWindow):
         self.toolbar.delete_order_act.triggered.connect(self.change_window_state)
         self.menubar.file_selected_signal.connect(self.process_imported_files)
         self.import_mask_widget.file_selected_signal.connect(self.process_imported_files)
+        self.toolbar.begin_process_data_act.triggered.connect(self.open_data_process_window)
 
     def process_imported_files(self, paths):
         self.order_loader.data_processor(paths)
         self.change_window_state()
+
+    def open_data_process_window(self):
+        if self.data_process_window.isHidden():
+            self.data_process_window.show()
