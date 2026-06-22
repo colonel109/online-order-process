@@ -102,11 +102,12 @@ class AddProduct(QDialog):
 
     def init_signal(self):
         self.add_btn.clicked.connect(self.add_to_temp_list)
-        self.product_code_input.textEdited.connect(self.data_validation)
-        self.product_name_input.textEdited.connect(self.data_validation)
+        self.product_code_input.textChanged.connect(self.data_validation)
+        self.product_name_input.textChanged.connect(self.data_validation)
         self.delete_button.pressed.connect(self.remove_record)
         self.preview_list_view.clicked.connect(self.remove_btn_status)
         self.cfm_button.clicked.connect(self.process_and_import)
+        self.dcl_button.clicked.connect(self.reject)
 
     def remove_btn_status(self):
         self.current_index_selected = self.preview_list_view.currentIndex().row()
@@ -161,7 +162,7 @@ class AddProduct(QDialog):
         """
         Hàm này được sử dụng để trích xuất dữ liệu mới nhất từ cache và tạo dataset cho model sử dụng 
         """
-        data = [(d['product_name'], d['product_code'], d['product_type_name']) for d in self.cache_data]
+        data = [(d['product_code'], d['product_name'], d['product_type_name']) for d in self.cache_data]
         self.preview_list_model.refresh_data(
             new_data = data
         ) 
