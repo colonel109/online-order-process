@@ -1,9 +1,12 @@
-from PySide6.QtWidgets import QWidget, QLabel, QTableView, QVBoxLayout, QHBoxLayout, QPushButton 
+from PySide6.QtWidgets import QWidget, QLabel, QTableView, QVBoxLayout, QHBoxLayout, QPushButton
+from PySide6.QtGui import QIcon
+from PySide6.QtCore import QSize, Qt
 from sqlalchemy import func, select
 
 from src.database.structure import ComboVariant, ComboDetail, ShopeeOrder, Product, ProductType
 from src.data_model.table_view_model import ProductInputModel, TableViewModel
 from src.ui.helper.auto_complete import ProductAutoCompleter
+from resources import resources_rc
 
 class AddComboDetail(QWidget):
     def __init__(self, session, parent=None):
@@ -11,7 +14,6 @@ class AddComboDetail(QWidget):
 
         # Kết nối tới database
         self.session = session
-        
 
         # Các biến lưu trữ dữ liệu
         self._cv_detail_cache = self.make_cache_data() # Lưu dữ dữ liệu cache tổng hợp
@@ -46,12 +48,24 @@ class AddComboDetail(QWidget):
         self.product_input_view.setItemDelegateForColumn(0, self.product_auto_complete)
         self.product_input_view.setItemDelegateForColumn(1, self.product_auto_complete)
 
-        self.add_row_btn = QPushButton("Thêm dòng mới")
-        self.del_row_btn = QPushButton("Xoá dòng đang chọn")
-        self.add_new_product_btn = QPushButton("Thêm sản phẩm mới")
+        self.add_row_btn = QPushButton(
+            QIcon(":/resource/icons/row-insert-bottom.svg"),
+            ""
+        )
+        self.add_row_btn.setIconSize(QSize(17, 17))
+        self.del_row_btn = QPushButton(
+            QIcon(":/resource/icons/row-remove.svg"),
+            ""
+        )
+        self.del_row_btn.setIconSize(QSize(17, 17))
+        self.add_new_product_btn = QPushButton(
+            QIcon(":resource/icons/package-plus.svg"),
+            ""
+        )
         button_layout = QHBoxLayout()
         button_layout.addWidget(self.add_row_btn)
         button_layout.addWidget(self.del_row_btn)
+        button_layout.addStretch(1)
         button_layout.addWidget(self.add_new_product_btn)
 
         product_input_layout = QVBoxLayout()

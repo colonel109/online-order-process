@@ -13,5 +13,9 @@
     <file>icons/list-x.svg</file>
     <file>icons/plus.svg</file>
     <file>icons/square-chevron-right.svg</file>
+    <file>icons/row-insert-bottom.svg</file>
+    <file>icons/row-remove.svg</file>
+    <file>icons/sparkle-highlight.svg</file>
+    <file>icons/package-plus.svg</file>
 </qresource>
 </RCC>

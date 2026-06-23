@@ -24,7 +24,7 @@ class Toolbar(QToolBar):
         self.delete_order_act.setStatusTip("Xoá dữ liệu đơn hàng trong cơ sở dữ liệu")
 
         self.begin_process_data_act = QAction(
-            QIcon(":/resource/icons/square-chevron-right.svg"),
+            QIcon(":/resource/icons/sparkle-highlight.svg"),
             "Bắt đầu xử lí dữ liệu",
             self
         )
