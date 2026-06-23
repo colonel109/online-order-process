@@ -90,7 +90,9 @@ class ProductInputModel(QAbstractTableModel):
         
         if col == 0: return row_data["product_code"]
         if col == 1: return row_data["product_name"]
-        if col == 2: return row_data["product_price"]
+        if col == 2:
+            price = row_data.get("product_price", 0.0)
+            return f"{int(price):,}" if price else 0.0
         if col == 3: return row_data["product_quantity"]
         return None
 
@@ -122,7 +124,13 @@ class ProductInputModel(QAbstractTableModel):
                     msg.setInformativeText("Vui lòng chọn chính xác sản phẩm từ danh sách gợi ý xổ xuống.")
                     msg.setStandardButtons(QMessageBox.StandardButton.Ok)
                     msg.exec()
-               
+
+            elif col ==2:
+                try: row_data["product_price"] = float(value) if value else 0.0
+                except ValueError: row_data["product_price"] = 0.0
+            elif col ==3:
+                try: row_data["product_quantity"] = int(value) if value else 0
+                except ValueError: row_data["product_quantity"] = 0
             return True
         return False
     
