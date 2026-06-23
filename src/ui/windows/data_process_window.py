@@ -63,6 +63,5 @@ class DataProcessWindow(QMainWindow):
         self.step_one.next_step_btn.clicked.connect(self.move_forward)   
     
     def move_forward(self):
-        print(self.current_step)
         self.current_step += 1
         self.display_layout.setCurrentIndex(self.current_step)

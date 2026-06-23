@@ -63,24 +63,25 @@ class ProductInputModel(QAbstractTableModel):
         Biến cache_data sẽ được trích xuất từ bảng
         """
         super().__init__()
-        self.data = cache_data if cache_data is not None else []
+        self._data = cache_data if cache_data is not None else []
+        self._headers = ["product_code", "product_name", "product_price", "product_quantity"]
 
     def rowCount(self, parent=QModelIndex()):
-        return len(self.data)
+        return len(self._data)
 
     def columnCount(self, parent=QModelIndex()):
-        return len(self.data)
+        return len(self._headers)
     
     def headerData(self, section, orientation, role=Qt.ItemDataRole.DisplayRole):
         if orientation == Qt.Orientation.Horizontal and role == Qt.ItemDataRole.DisplayRole:
-            return self.headers[section]
+            return self._headers[section]
         return None
 
     def data(self, index, role=Qt.ItemDataRole.DisplayRole):
         if not index.isValid() or role not in (Qt.ItemDataRole.DisplayRole, Qt.ItemDataRole.EditRole):
             return None
         
-        row_data = self.products[index.row()]
+        row_data = self._data[index.row()]
         col = index.column()
         
         if col == 0: return row_data["product_code"]
@@ -91,7 +92,7 @@ class ProductInputModel(QAbstractTableModel):
 
     def setData(self, index, value, role=Qt.ItemDataRole.EditRole):
         if index.isValid() and role == Qt.ItemDataRole.EditRole:
-            row_data = self.products[index.row()]
+            row_data = self._data[index.row()]
             col = index.column()
             
             if col == 0: row_data["product_code"] = value
@@ -107,9 +108,9 @@ class ProductInputModel(QAbstractTableModel):
         return Qt.ItemFlag.ItemIsEnabled | Qt.ItemFlag.ItemIsSelectable | Qt.ItemFlag.ItemIsEditable
     
     def add_blank_row(self):
-        position = len(self.data)
+        position = len(self._data)
         self.beginInsertRows(QModelIndex(), position, position)
-        self.data.append({
+        self._data.append({
             "product_key": None,
             "product_code": "",
             "product_name": "",
@@ -119,13 +120,13 @@ class ProductInputModel(QAbstractTableModel):
         self.endInsertRows()
     
     def remove_row(self, row_index):
-        if row_index < 0 or row_index >= len(self.data):
+        if row_index < 0 or row_index >= len(self._data):
             return
         self.beginRemoveRows(QModelIndex(), row_index, row_index)
-        self.data.pop(row_index)
+        self._data.pop(row_index)
         self.endRemoveRows()
 
     def update_model(self, new_data):
         self.beginResetModel()
-        self.data = new_data
+        self._data = new_data
         self.endResetModel()

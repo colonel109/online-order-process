@@ -30,8 +30,11 @@ class AddComboDetail(QWidget):
         cv_version_layout.addWidget(self.cv_version_view)
        
         # Bên phải - hiển thị các sản phẩm, số lượng, giá của các cặp combo - variant khi được chọn 
-        self.product_add_label = QLabel("Thêm sản phẩm vào combo")
-        self.product_add_view = QTableView()
+        self.product_input_label = QLabel("Thêm sản phẩm vào combo")
+        product_input_view = QTableView()
+        self.product_input_model = ProductInputModel()
+        product_input_view.setModel(self.product_input_model)
+
         self.add_row_btn = QPushButton("Thêm dòng mới")
         self.del_row_btn = QPushButton("Xoá dòng đang chọn")
         self.add_new_product_btn = QPushButton("Thêm sản phẩm mới")
@@ -40,16 +43,22 @@ class AddComboDetail(QWidget):
         button_layout.addWidget(self.del_row_btn)
         button_layout.addWidget(self.add_new_product_btn)
 
-        product_add_layout = QVBoxLayout()
-        product_add_layout.addWidget(self.product_add_label)
-        product_add_layout.addLayout(button_layout)
-        product_add_layout.addWidget(self.product_add_view)
+        product_input_layout = QVBoxLayout()
+        product_input_layout.addWidget(self.product_input_label)
+        product_input_layout.addLayout(button_layout)
+        product_input_layout.addWidget(product_input_view)
 
         main_layout = QHBoxLayout()
         main_layout.addLayout(cv_version_layout)
-        main_layout.addLayout(product_add_layout)
+        main_layout.addLayout(product_input_layout)
 
         self.setLayout(main_layout)
+
+        # Kết nối signal với slot
+        self.init_signal()
+    
+    def init_signal(self):
+        self.cv_version_view.clicked.connect(self.combo_variant_select)
 
     def make_cache_data(self):
         """
@@ -143,3 +152,18 @@ class AddComboDetail(QWidget):
             cv_version_data.append(version)
 
         return cv_version_data
+    
+    def combo_variant_select(self, index):
+        """
+        Hàm này có nhiệm vụ lấy index của cặp combo - variant mà người dùng đang chọn
+        sau đó lấy thông tin sản phẩm tương ứng được trích xuất từ cache
+        """
+        row_index = index.row()
+
+        if row_index < 0 or row_index >= len(self._cv_detail_cache):
+            return
+        
+        selected_combo_variant = self._cv_detail_cache[row_index] 
+        selected_product_list = selected_combo_variant["products"]
+
+        self.product_input_model.update_model(selected_product_list)
