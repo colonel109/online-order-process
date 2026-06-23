@@ -31,9 +31,9 @@ class AddComboDetail(QWidget):
        
         # Bên phải - hiển thị các sản phẩm, số lượng, giá của các cặp combo - variant khi được chọn 
         self.product_input_label = QLabel("Thêm sản phẩm vào combo")
-        product_input_view = QTableView()
+        self.product_input_view = QTableView()
         self.product_input_model = ProductInputModel()
-        product_input_view.setModel(self.product_input_model)
+        self.product_input_view.setModel(self.product_input_model)
 
         self.add_row_btn = QPushButton("Thêm dòng mới")
         self.del_row_btn = QPushButton("Xoá dòng đang chọn")
@@ -46,7 +46,7 @@ class AddComboDetail(QWidget):
         product_input_layout = QVBoxLayout()
         product_input_layout.addWidget(self.product_input_label)
         product_input_layout.addLayout(button_layout)
-        product_input_layout.addWidget(product_input_view)
+        product_input_layout.addWidget(self.product_input_view)
 
         main_layout = QHBoxLayout()
         main_layout.addLayout(cv_version_layout)
@@ -59,6 +59,8 @@ class AddComboDetail(QWidget):
     
     def init_signal(self):
         self.cv_version_view.clicked.connect(self.combo_variant_select)
+        self.add_row_btn.clicked.connect(self.add_row)
+        self.del_row_btn.clicked.connect(self.delete_row)
 
     def make_cache_data(self):
         """
@@ -167,3 +169,20 @@ class AddComboDetail(QWidget):
         selected_product_list = selected_combo_variant["products"]
 
         self.product_input_model.update_model(selected_product_list)
+
+    def delete_row(self):
+        """
+        Hàm này nhận tín hiệu từ nút, xoá dòng mà người dùng đang chọn trên view và viết lại vào cache 
+        """
+        row_to_remove =  self.product_input_view.currentIndex().row()
+        if row_to_remove < 0:
+            return
+        self.product_input_model.remove_row(row_to_remove)
+   
+    def add_row(self):
+        """
+        Hàm này nhận tín hiệu từ nút, thêm dòng mới vào cuối danh sách và viết lại vào cache
+        """
+        if self.cv_version_view.currentIndex().row() < 0:
+            return
+        self.product_input_model.add_blank_row()

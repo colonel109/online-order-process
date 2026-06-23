@@ -63,7 +63,7 @@ class ProductInputModel(QAbstractTableModel):
         Biến cache_data sẽ được trích xuất từ bảng
         """
         super().__init__()
-        self._data = cache_data if cache_data is not None else []
+        self._data = cache_data if cache_data is not None else [] # Trỏ đến dict chưa thông tin mà hàm combo_variant_select truyền vào
         self._headers = ["product_code", "product_name", "product_price", "product_quantity"]
 
     def rowCount(self, parent=QModelIndex()):
@@ -73,8 +73,10 @@ class ProductInputModel(QAbstractTableModel):
         return len(self._headers)
     
     def headerData(self, section, orientation, role=Qt.ItemDataRole.DisplayRole):
-        if orientation == Qt.Orientation.Horizontal and role == Qt.ItemDataRole.DisplayRole:
-            return self._headers[section]
+        if role == Qt.ItemDataRole.DisplayRole:
+            if orientation == Qt.Orientation.Horizontal:
+                return self._headers[section]
+            return str(section + 1)
         return None
 
     def data(self, index, role=Qt.ItemDataRole.DisplayRole):
