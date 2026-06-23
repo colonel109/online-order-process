@@ -140,6 +140,21 @@ class ProductInputModel(QAbstractTableModel):
             if col in (0, 1):
                 if value in self._product_lookup:
                     info = self._product_lookup[value]
+                    target_code = info["product_code"]
+
+                    for i, existing_row in enumerate(self._data):
+                        if i != row_idx and existing_row.get("product_code") == target_code:
+                            msg = QMessageBox()
+                            msg.setIcon(QMessageBox.Icon.Warning)
+                            msg.setWindowTitle("Trùng lặp sản phẩm")
+                            msg.setText(f"Sản phẩm với mã '{target_code}' đã được thêm vào combo này!")
+                            msg.setInformativeText(
+                                "Vui lòng không nhập trùng một sản phẩm nhiều lần. Thay vào đó hãy tăng số lượng của dòng đã có.")
+                            msg.setStandardButtons(QMessageBox.StandardButton.Ok)
+                            msg.exec()
+
+                            return False
+
                     row_data["product_key"] = info["product_key"]
                     row_data["product_code"] = info["product_code"]
                     row_data["product_name"] = info["product_name"]
