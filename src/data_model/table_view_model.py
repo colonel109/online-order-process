@@ -1,43 +1,78 @@
 from PySide6.QtCore import QAbstractTableModel, Qt, QModelIndex
 from PySide6.QtWidgets import QMessageBox
+from PySide6.QtGui import QColor
 
 
 class TableViewModel(QAbstractTableModel):
     """
     Class này có vai trò là model cho tất cả các view có dạng bảng
     """
-    def __init__(self, data, column_names: list):
+    def __init__(self, data, column_names: list, cache=None):
         super().__init__()
         self._data = data
         self._column_names = column_names
+        if cache is not None:
+            self._cache_reference = cache
 
-    def rowCount(self, /, parent = ...):
+    def rowCount(self, /, parent=QModelIndex()):
         return len(self._data)
 
-    def columnCount(self, /, parent = ...):
+    def columnCount(self, /, parent=QModelIndex()):
         return len(self._column_names)
 
-    def data(self, index, role):
+    def data(self, index, role=Qt.ItemDataRole.DisplayRole):
         """
-        Hàm này tự động lặp qua các ô trong data, chỉ cần hướng dẫn nó lấy dữ liệu từ ô đầu tiên
+        Hàm này tự động lặp qua các ô trong dữ liệu để vẽ giao diện và nhuộm màu sắc
         """
-        if role == Qt.ItemDataRole.DisplayRole:
-            row_data = self._data[index.row()]
+        if not index.isValid():
+            return None
 
-            # Nếu data có dạng một list hoặc tup thì chỉ cần truy cập từng phần tử trong mỗi row
+        row_idx = index.row()
+        col_idx = index.column()
+
+        if row_idx >= len(self._data):
+            return None
+
+        row_data = self._data[row_idx]
+
+        if role == Qt.ItemDataRole.DisplayRole:
             if isinstance(row_data, (tuple, list)):
-                value = row_data[index.column()]
+                value = row_data[col_idx]
                 return str(value) if value is not None else ""
 
-            # Nếu data là các object thì 
-            col_attr = self._column_names[index.column()]
-            part = col_attr.split(".")
+            col_attr = self._headers[col_idx] if hasattr(self, "_headers") else self._column_names[col_idx]
+            parts = col_attr.split(".")
             value = row_data
-            for part in part:
+            for part in parts:
                 value = getattr(value, part, None)
                 if value is None:
                     break
             return str(value) if value is not None else ""
+
+        elif role == Qt.ItemDataRole.BackgroundRole:
+            if index.column() == 2:
+                if hasattr(self, "_cache_reference") and row_idx < len(self._cache_reference):
+                    combo_item = self._cache_reference[row_idx]
+                    product_list = combo_item.get("products", [])
+                    has_empty_code = (
+                        len(product_list) == 0 or
+                        any(not str(p.get("product_code", "")).strip() for p in product_list)
+
+                    )
+
+                    deal_price = float(combo_item.get("deal_price", 0.0))
+
+                    total_config_value = sum(
+                        float(p.get("product_price", 0.0)) * int(p.get("product_quantity", 0))
+                        for p in combo_item.get("products", [])
+                    )
+
+                    if abs(total_config_value - deal_price) < 0.01 and not has_empty_code:
+                        return QColor("#467235")
+                    else:
+                        return QColor("#AA1C41")
+
+        return None
 
     def headerData(self, section, orientation, /, role = ...):
         if role == Qt.ItemDataRole.DisplayRole:

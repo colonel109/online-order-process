@@ -17,7 +17,7 @@ class AddComboDetail(QWidget):
 
         # Các biến lưu trữ dữ liệu
         self._cv_detail_cache = self.make_cache_data() # Lưu dữ dữ liệu cache tổng hợp
-        self.product_suggest_list = [] # Lưu các cặp mã sản phẩm - tên sản phẩm để người dùng chọn trên giao diện 
+        self.product_suggest_list = [] # Lưu các cặp mã sản phẩm - tên sản phẩm để người dùng chọn trên giao diện
         self.product_lookup_dict = {} # Từ điển dạng {(product_code, product_name): {các key}} để điền ngược lại vào cache 
 
         # Đưa dữ liệu vào biến
@@ -28,7 +28,8 @@ class AddComboDetail(QWidget):
         cv_version_label = QLabel("Combo chưa được cài giá")
         cv_version_model = TableViewModel(
             data=self.make_cv_version_data(),
-            column_names=["combo_name", "variant", "deal_price"]
+            column_names=["combo_name", "variant", "deal_price"],
+            cache=self._cv_detail_cache
         )
         self.cv_version_view = QTableView() #Các cặp combo có trong file order
         self.cv_version_view.setSelectionBehavior(QTableView.SelectionBehavior.SelectRows) 
@@ -86,6 +87,8 @@ class AddComboDetail(QWidget):
         self.cv_version_view.clicked.connect(self.combo_variant_select)
         self.add_row_btn.clicked.connect(self.add_row)
         self.del_row_btn.clicked.connect(self.delete_row)
+        self.product_input_model.dataChanged.connect(self.update_total_combo_value)
+        self.product_input_model.modelReset.connect(self.update_total_combo_value)
 
     def make_cache_data(self):
         """
@@ -203,6 +206,7 @@ class AddComboDetail(QWidget):
         if row_to_remove < 0:
             return
         self.product_input_model.remove_row(row_to_remove)
+        self.update_total_combo_value()
    
     def add_row(self):
         """
@@ -211,7 +215,8 @@ class AddComboDetail(QWidget):
         if self.cv_version_view.currentIndex().row() < 0:
             return
         self.product_input_model.add_blank_row()
-        
+        self.update_total_combo_value()
+
     def make_product_cache(self):
         stmt = select(Product.product_key, Product.product_code, Product.product_name, Product.product_type_key) 
         data = self.session.execute(stmt).all()
@@ -224,3 +229,14 @@ class AddComboDetail(QWidget):
                 "product_code": p.product_code,
                 "product_name": p.product_name
             }
+
+    def update_total_combo_value(self):
+        """
+        Quét qua toàn bộ sản phẩm lẻ của combo hiện tại trong Model để tính tổng tiền
+        """
+        current_products = self.product_input_model._data
+
+        total_sum = sum(
+            float(p.get("product_price", 0.0)) * int(p.get("product_quantity", 0))
+            for p in current_products
+        )
