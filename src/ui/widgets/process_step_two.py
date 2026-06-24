@@ -1,11 +1,12 @@
 from PySide6.QtWidgets import QWidget, QLabel, QTableView, QVBoxLayout, QHBoxLayout, QPushButton
-from PySide6.QtGui import QIcon
+from PySide6.QtGui import QIcon, QColor
 from PySide6.QtCore import QSize, Qt
 from sqlalchemy import func, select
 
 from src.database.structure import ComboVariant, ComboDetail, ShopeeOrder, Product, ProductType
 from src.data_model.table_view_model import ProductInputModel, TableViewModel
 from src.ui.helper.auto_complete import ProductAutoCompleter
+from src.utils.svg_color_changer import get_colored_qrc_icon
 from resources import resources_rc
 
 class AddComboDetail(QWidget):
@@ -49,20 +50,10 @@ class AddComboDetail(QWidget):
         self.product_input_view.setItemDelegateForColumn(0, self.product_auto_complete)
         self.product_input_view.setItemDelegateForColumn(1, self.product_auto_complete)
 
-        self.add_row_btn = QPushButton(
-            QIcon(":/resource/icons/row-insert-bottom.svg"),
-            ""
-        )
-        self.add_row_btn.setIconSize(QSize(17, 17))
-        self.del_row_btn = QPushButton(
-            QIcon(":/resource/icons/row-remove.svg"),
-            ""
-        )
-        self.del_row_btn.setIconSize(QSize(17, 17))
-        self.add_new_product_btn = QPushButton(
-            QIcon(":resource/icons/package-plus.svg"),
-            ""
-        )
+        self.add_row_btn = QPushButton()
+        self.del_row_btn = QPushButton()
+        self.add_new_product_btn = QPushButton()
+
         button_layout = QHBoxLayout()
         button_layout.addWidget(self.add_row_btn)
         button_layout.addWidget(self.del_row_btn)
@@ -240,3 +231,15 @@ class AddComboDetail(QWidget):
             float(p.get("product_price", 0.0)) * int(p.get("product_quantity", 0))
             for p in current_products
         )
+
+    def update_theme(self, is_dark_mode: bool):
+        icon_color = QColor("white") if is_dark_mode else QColor("#333333")
+        icon_size = QSize(17, 17)
+
+        add_row_icon = get_colored_qrc_icon(":/resource/icons/row-insert-bottom.svg", icon_color, icon_size)
+        del_row_icon = get_colored_qrc_icon(":/resource/icons/row-remove.svg", icon_color, icon_size)
+        add_product_icon = get_colored_qrc_icon(":/resource/icons/package-plus.svg", icon_color, icon_size)
+
+        self.add_row_btn.setIcon(add_row_icon)
+        self.del_row_btn.setIcon(del_row_icon)
+        self.add_new_product_btn.setIcon(add_product_icon)

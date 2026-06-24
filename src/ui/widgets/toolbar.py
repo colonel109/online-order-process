@@ -1,9 +1,10 @@
 from PySide6.QtWidgets import QToolBar
 from PySide6.QtCore import QSize
-from PySide6.QtGui import QAction, QIcon
+from PySide6.QtGui import QAction, QIcon, QColor
 
 from resources import resources_rc
 from src.database.structure import ShopeeOrder
+from src.utils.svg_color_changer import get_colored_qrc_icon
 
 from sqlalchemy import delete
 
@@ -17,14 +18,12 @@ class Toolbar(QToolBar):
 
         # Action
         self.delete_order_act = QAction(
-            QIcon(":/resource/icons/list-x.svg"),
             "Xoá dữ liệu",
             self
         ) 
         self.delete_order_act.setStatusTip("Xoá dữ liệu đơn hàng trong cơ sở dữ liệu")
 
         self.begin_process_data_act = QAction(
-            QIcon(":/resource/icons/sparkle-highlight.svg"),
             "Bắt đầu xử lí dữ liệu",
             self
         )
@@ -47,3 +46,12 @@ class Toolbar(QToolBar):
         statement = delete(ShopeeOrder)
         self.session.execute(statement)
         self.session.commit()
+
+    def update_theme(self, is_dark_mode: bool):
+        icon_color = QColor("white") if is_dark_mode else QColor("#333333")
+
+        del_order_icon = get_colored_qrc_icon(":/resource/icons/list-x.svg", icon_color)
+        begin_process_icon = get_colored_qrc_icon(":/resource/icons/sparkle-highlight.svg", icon_color)
+
+        self.delete_order_act.setIcon(del_order_icon)
+        self.begin_process_data_act.setIcon(begin_process_icon)

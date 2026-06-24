@@ -1,4 +1,5 @@
 from PySide6.QtWidgets import QMainWindow, QStackedLayout, QWidget, QVBoxLayout, QProgressBar, QLabel
+from PySide6.QtGui import QGuiApplication
 from PySide6.QtCore import QSize, Qt
 from src.ui.widgets.process_step_one import AddComboVariant
 from src.ui.widgets.process_step_two import AddComboDetail
@@ -55,6 +56,11 @@ class DataProcessWindow(QMainWindow):
         self.setCentralWidget(container)
 
         self.setWindowModality(Qt.WindowModality.ApplicationModal)
+        # Kết nối với hệ thống để tự đổi giao diện
+
+        app = QGuiApplication.instance()
+        app.styleHints().colorSchemeChanged.connect(self.on_theme_changed)
+        self.on_theme_changed(app.styleHints().colorScheme())
 
         # Kết nối signal với slot
         self.init_signal()
@@ -65,3 +71,7 @@ class DataProcessWindow(QMainWindow):
     def move_forward(self):
         self.current_step += 1
         self.display_layout.setCurrentIndex(self.current_step)
+    
+    def on_theme_changed(self, scheme):
+        is_dark = (scheme == Qt.ColorScheme.Dark)
+        self.step_two.update_theme(is_dark_mode=is_dark)

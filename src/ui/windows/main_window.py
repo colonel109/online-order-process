@@ -1,5 +1,6 @@
 from PySide6.QtWidgets import QMainWindow, QWidget, QStackedLayout
-from PySide6.QtCore import QSize
+from PySide6.QtCore import QSize, Qt
+from PySide6.QtGui import QGuiApplication
 from pathlib import Path
 
 from sqlalchemy import select
@@ -61,6 +62,11 @@ class MainWindow(QMainWindow):
         container.setLayout(self.main_layout)
         self.setCentralWidget(container)
 
+        # Kết nối với hệ thống để tự đổi giao diện
+        app = QGuiApplication.instance()
+        app.styleHints().colorSchemeChanged.connect(self.on_theme_changed)
+        self.on_theme_changed(app.styleHints().colorScheme())
+
         # Chạy hàm 
         self.init_signal()
         self.change_window_state()
@@ -97,3 +103,8 @@ class MainWindow(QMainWindow):
     def open_data_process_window(self):
         self.data_process_window = DataProcessWindow(session=self.session)
         self.data_process_window.show()
+
+    def on_theme_changed(self, scheme):
+        is_dark = (scheme == Qt.ColorScheme.Dark)
+        self.menubar.update_theme(is_dark_mode=is_dark)
+        self.toolbar.update_theme(is_dark_mode=is_dark)
