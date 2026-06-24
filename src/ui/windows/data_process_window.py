@@ -58,7 +58,7 @@ class DataProcessWindow(QMainWindow):
         self.init_signal()
 
     def init_signal(self):
-        self.step_one.next_step_btn.clicked.connect(self.move_forward)   
+        pass
     
     def move_forward(self):
         self.current_step += 1

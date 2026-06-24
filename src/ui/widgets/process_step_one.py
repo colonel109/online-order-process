@@ -1,7 +1,9 @@
-from PySide6.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QLabel, QTableView, QPushButton
+from PySide6.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QLabel, QTableView, QPushButton, QFrame
+from PySide6.QtGui import QIcon
 from sqlalchemy import select, update
 from src.database.structure import ShopeeOrder, Combo, Variant, ComboVariant
 from src.data_model.table_view_model import TableViewModel
+from resources import resources_rc
 
 
 class AddComboVariant(QWidget):
@@ -22,18 +24,31 @@ class AddComboVariant(QWidget):
         self.cfm_button.setMaximumWidth(150)
         self.dcl_button = QPushButton("Huỷ")
         self.dcl_button.setMaximumWidth(150)
-        self.next_step_btn = QPushButton("Sang bước tiếp theo")
-        self.next_step_btn.setVisible(False)
 
         btn_layout = QHBoxLayout()
         btn_layout.addWidget(self.cfm_button)
+        self.cfm_button.setObjectName("cfm_button")
         btn_layout.addWidget(self.dcl_button)
-        btn_layout.addWidget(self.next_step_btn)
         btn_layout.addStretch()
 
         control_info_layout = QVBoxLayout()
         control_info_layout.addWidget(self.noti_label)
         control_info_layout.addLayout(btn_layout)
+
+        self.control_info_container = QFrame()
+        self.control_info_container.setLayout(control_info_layout)
+
+        self.control_info_container.setStyleSheet("""
+            .QFrame {
+                border: 1px solid #7f7f7f;
+                border-radius: 4px; 
+                background-color: #2a2a2a; 
+            }
+            #cfm_button{
+                background-color: #95CCDD;
+                color: black;
+            }
+        """)
 
         # View hiển thị các combo có trong đơn hàng
         self.cv_order_title = QLabel()
@@ -47,7 +62,30 @@ class AddComboVariant(QWidget):
         self.cv_missing_title = QLabel()
         self.cv_missing_model = None
         self.cv_missing_view = QTableView()
-        self.cv_import_success = QLabel("Toàn bộ combo mới đã được nhập thành công!")
+
+        # Thông báo hiển thị khi thêm thành công
+        cv_import_success_icon = QIcon(":resource/icons/circle-check.svg")
+        icon_label = QLabel()
+        icon_label.setPixmap(cv_import_success_icon.pixmap(20, 20))
+        self.cv_import_success_label = QLabel()
+        cv_import_success_layout = QHBoxLayout()
+
+        cv_import_success_layout.addWidget(icon_label)
+        cv_import_success_layout.addWidget(self.cv_import_success_label)
+        cv_import_success_layout.addStretch()
+        self.cv_import_success_container = QFrame()
+
+        self.cv_import_success_container.setStyleSheet("""
+            .QFrame {
+                border: 1px solid #7f7f7f;
+                border-radius: 4px; 
+                background-color: #2a2a2a; 
+            }
+        """)
+
+        self.cv_import_success_container.setLayout(cv_import_success_layout)
+        self.cv_import_success_container.hide() # Mặc định ẩn widget này
+
         cv_missing_layout = QVBoxLayout()
         cv_missing_layout.addWidget(self.cv_missing_title)
         cv_missing_layout.addWidget(self.cv_missing_view)
@@ -59,7 +97,8 @@ class AddComboVariant(QWidget):
 
         #Layout chính
         main_layout = QVBoxLayout()
-        main_layout.addLayout(control_info_layout)
+        main_layout.addWidget(self.control_info_container)
+        main_layout.addWidget(self.cv_import_success_container)
         main_layout.addLayout(display_layout)
 
         self.setLayout(main_layout)
@@ -165,12 +204,11 @@ class AddComboVariant(QWidget):
         self.cv_order_title.setText(f"Combo có trong đơn hàng: {order_combo_count}")
 
         if not self.missing_cv_list:
-            self.noti_label.setText("Không có combo mới cần thêm, hãy tiếp tục")
             self.cv_missing_title.setText("Không tìm thấy combo mới")
             self.write_keys()
-            self.next_step_btn.setVisible(True)
-            self.cfm_button.setVisible(False)
-            self.dcl_button.setVisible(False)
+            self.cv_import_success_label.setText("Không phát hiện combo mới, hãy tiếp tục!")
+            self.cv_import_success_container.show()
+            self.control_info_container.hide()
         else:
             self.cv_missing_model = TableViewModel(
                 data=self.missing_cv_list,
@@ -186,11 +224,9 @@ class AddComboVariant(QWidget):
             self.session.commit()
             self.write_keys()
             self.missing_cv_list.clear()
-            self.next_step_btn.setVisible(True)
-            self.cfm_button.setVisible(False)
-            self.dcl_button.setVisible(False)
-            self.noti_label.setText(f"Đã thêm {self.new_combo_count} combo mới!")
-            self.cv_missing_title.setText("Không tìm thấy combo mới")
+            self.cv_import_success_container.show() 
+            self.cv_import_success_label.setText(f"Đã thêm {self.new_combo_count} combo mới!")
+            self.control_info_container.hide()
         except Exception as e:
             self.session.rollback()
             print(e)

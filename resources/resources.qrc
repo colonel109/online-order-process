@@ -17,5 +17,6 @@
     <file>icons/row-remove.svg</file>
     <file>icons/sparkle-highlight.svg</file>
     <file>icons/package-plus.svg</file>
+    <file>icons/circle-check.svg</file>
 </qresource>
 </RCC>
