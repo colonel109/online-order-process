@@ -155,6 +155,7 @@ class AddComboDetail(QWidget):
                     ]
                 }
                 cv_detail_list.append(combo_template)
+        print(cv_detail_list)
 
         return cv_detail_list
 

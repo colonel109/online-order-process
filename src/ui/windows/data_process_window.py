@@ -35,10 +35,7 @@ class DataProcessWindow(QMainWindow):
         self.display_layout = QStackedLayout()
         self.display_layout.addWidget(self.step_one)
         self.display_layout.addWidget(self.step_two)
-
         self.current_step = 0
-
-        self.display_layout.setCurrentIndex(0)
 
         # Layout chính
         main_layout = QVBoxLayout()
@@ -60,32 +57,39 @@ class DataProcessWindow(QMainWindow):
 
         # Kết nối signal với slot
         self.init_signal()
+        self.update_button_state()
 
     def init_signal(self):
         self.progress_displayer.forward_btn.pressed.connect(self.move_forward)
         self.progress_displayer.backward_btn.pressed.connect(self.move_backward)
-    
+
     def move_forward(self):
-        print(f"fw: {self.display_layout.currentIndex()}")
-        if self.display_layout.currentIndex() < (self.display_layout.count() - 1):
+        current_index = self.display_layout.currentIndex()
+        total_widgets = self.display_layout.count()
+
+        if current_index < total_widgets -1:
             self.current_step += 1
             self.display_layout.setCurrentIndex(self.current_step)
-            self.progress_displayer.backward_btn.setEnabled(True)
-        
-        elif self.display_layout.currentIndex() == (self.display_layout.count() -1):
-            self.progress_displayer.forward_btn.setEnabled(False)
-    
+            self.update_button_state()
+
+        elif current_index == total_widgets -1:
+            self.update_button_state()
+            pass
+
     def move_backward(self):
-        print(f"bw {self.display_layout.currentIndex()}")
-        if self.display_layout.currentIndex() < 1:
-            self.progress_displayer.backward_btn.setEnabled(False)
-        if self.display_layout.currentIndex == 0:
-            self.progress_displayer.backward_btn.setEnabled(False)
-        else:
+        current_index = self.display_layout.currentIndex()
+        if current_index > 0:
             self.current_step -= 1
             self.display_layout.setCurrentIndex(self.current_step)
-            self.progress_displayer.forward_btn.setEnabled(True)
-    
+            self.update_button_state()
+
+    def update_button_state(self):
+        current_index = self.display_layout.currentIndex()
+        total_widgets = self.display_layout.count()
+
+        self.progress_displayer.backward_btn.setEnabled(current_index > 0)
+        self.progress_displayer.forward_btn.setEnabled(current_index < total_widgets - 1)
+
     def on_theme_changed(self, scheme):
         is_dark = (scheme == Qt.ColorScheme.Dark)
         self.step_two.update_theme(is_dark_mode=is_dark)
