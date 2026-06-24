@@ -1,8 +1,10 @@
 from PySide6.QtWidgets import QMainWindow, QStackedLayout, QWidget, QVBoxLayout, QProgressBar, QLabel
 from PySide6.QtGui import QGuiApplication
 from PySide6.QtCore import QSize, Qt
+
 from src.ui.widgets.process_step_one import AddComboVariant
 from src.ui.widgets.process_step_two import AddComboDetail
+from src.ui.widgets.progress_display import ProgressDisplay
 
 
 class DataProcessWindow(QMainWindow):
@@ -25,19 +27,9 @@ class DataProcessWindow(QMainWindow):
         self.step_two = AddComboDetail(session=self.session, parent=self)
 
         # Layout tiến trình
-        label = QLabel("Tiến trình")
-
-        self.current_step = 0
-        self.max_stop = 3
-        self.progress_bar = QProgressBar()
-        self.progress_bar.setMinimum(self.current_step)
-        self.progress_bar.setMaximum(3)
-        progress_layout = QVBoxLayout()
-
-        progress_layout.addWidget(label)
-        progress_layout.addWidget(self.progress_bar)
-        progress_container = QWidget()
-        progress_container.setLayout(progress_layout)
+        self.progress_displayer= ProgressDisplay(
+            max_step=3
+        )
 
         # Layout hiển thị
         self.display_layout = QStackedLayout()
@@ -48,7 +40,7 @@ class DataProcessWindow(QMainWindow):
         main_layout = QVBoxLayout()
         main_layout.setContentsMargins(0, 0, 0, 0)
         main_layout.setSpacing(0)
-        main_layout.addWidget(progress_container)
+        main_layout.addWidget(self.progress_displayer)
         main_layout.addLayout(self.display_layout)
 
         container = QWidget()
@@ -70,6 +62,10 @@ class DataProcessWindow(QMainWindow):
     
     def move_forward(self):
         self.current_step += 1
+        self.display_layout.setCurrentIndex(self.current_step)
+    
+    def move_backward(self):
+        self.current_step -=1
         self.display_layout.setCurrentIndex(self.current_step)
     
     def on_theme_changed(self, scheme):
