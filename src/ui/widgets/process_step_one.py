@@ -37,15 +37,15 @@ class AddComboVariant(QWidget):
 
         self.control_info_container = QFrame()
         self.control_info_container.setLayout(control_info_layout)
+        self.control_info_container.setObjectName("control_info_container")
 
         self.control_info_container.setStyleSheet("""
-            .QFrame {
-                border: 1px solid #7f7f7f;
+            #control_info_container{
                 border-radius: 4px; 
                 background-color: #2a2a2a; 
             }
             #cfm_button{
-                background-color: #95CCDD;
+                background-color: #73cefc;
                 color: black;
             }
         """)
@@ -74,12 +74,13 @@ class AddComboVariant(QWidget):
         cv_import_success_layout.addWidget(self.cv_import_success_label)
         cv_import_success_layout.addStretch()
         self.cv_import_success_container = QFrame()
+        self.cv_import_success_container.setObjectName("cv_import_success_container")
 
         self.cv_import_success_container.setStyleSheet("""
-            .QFrame {
-                border: 1px solid #7f7f7f;
+            #cv_import_success_container {
                 border-radius: 4px; 
-                background-color: #2a2a2a; 
+                background-color: #233D4D; 
+                color: #000000;
             }
         """)
 
