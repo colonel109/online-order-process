@@ -18,5 +18,6 @@
     <file>icons/sparkle-highlight.svg</file>
     <file>icons/package-plus.svg</file>
     <file>icons/circle-check.svg</file>
+    <file>icons/zoom-scan.svg</file>
 </qresource>
 </RCC>

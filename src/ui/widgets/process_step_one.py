@@ -18,14 +18,27 @@ class AddComboVariant(QWidget):
         self.missing_cv_list = [] # Lưu trữ các cặp combo variant chuẩn bị được thêm mới
         self.new_combo_count = None
 
+
+
+        # Frame giữ nút bắt đầu xử lí data
         # Thông tin và các nút điều khiển
-        self.noti_label = QLabel()
+        self.noti_label = QLabel("<b>Vui lòng nhấn nút bắt đầu</b>")
+        self.begin_process_btn = QPushButton(
+            QIcon(":/resource/icons/zoom-scan.svg"),
+            "Bắt đầu quét các cặp Combo có trong đơn hàng",
+            self
+        )
+
         self.cfm_button = QPushButton("Thêm vào database")
         self.cfm_button.setMaximumWidth(150)
         self.dcl_button = QPushButton("Huỷ")
         self.dcl_button.setMaximumWidth(150)
 
+        self.cfm_button.hide()
+        self.dcl_button.hide()
+
         btn_layout = QHBoxLayout()
+        btn_layout.addWidget(self.begin_process_btn)
         btn_layout.addWidget(self.cfm_button)
         self.cfm_button.setObjectName("cfm_button")
         btn_layout.addWidget(self.dcl_button)
@@ -52,19 +65,30 @@ class AddComboVariant(QWidget):
 
         # View hiển thị các combo có trong đơn hàng
         self.cv_order_title = QLabel()
-        self.cv_order_model = None
+
+        self.cv_order_model = TableViewModel( # Tạo model và gán vào view
+            data=[],
+            column_names=["combo_name", "variant_name"]
+        )
         self.cv_order_view = QTableView()
+        self.cv_order_view.setModel(self.cv_order_model)
+
         cv_order_layout = QVBoxLayout()
         cv_order_layout.addWidget(self.cv_order_title)
         cv_order_layout.addWidget(self.cv_order_view)
 
         # View hiển thị các combo chưa được thêm
         self.cv_missing_title = QLabel()
-        self.cv_missing_model = None
+
+        self.cv_missing_model = TableViewModel( # Tạo model và gán vào view
+            data=[],
+            column_names=["combo_name", "variant_name"]
+        )
         self.cv_missing_view = QTableView()
+        self.cv_missing_view.setModel(self.cv_missing_model)
 
         # Thông báo hiển thị khi thêm thành công
-        cv_import_success_icon = QIcon(":resource/icons/circle-check.svg")
+        cv_import_success_icon = QIcon(":/resource/icons/circle-check.svg")
         icon_label = QLabel()
         icon_label.setPixmap(cv_import_success_icon.pixmap(20, 20))
         self.cv_import_success_label = QLabel()
@@ -104,16 +128,17 @@ class AddComboVariant(QWidget):
 
         self.setLayout(main_layout)
         self.init_signal()
-        self.process_data()
 
     def init_signal(self):
         self.cfm_button.pressed.connect(self.confirm_and_save)
         self.dcl_button.pressed.connect(self.decline_and_revert)
+        self.begin_process_btn.pressed.connect(self.process_and_display_data)
 
-    def process_data(self):
+    def process_and_display_data(self):
         """
         Hàm này có nhiệm vụ biến đổi dữ liệu từ list các tup chứa những phiên bản khác nhau của combo variant
         Tạo ra một set các combo và variant riêng biệt
+        Hiển thị kết quả lên màn hình
         """
         stmt = select(ShopeeOrder.combo_name, ShopeeOrder.variant_name).distinct()
 
@@ -122,6 +147,10 @@ class AddComboVariant(QWidget):
             (cv.combo_name, cv.variant_name) for cv in
             self.session.execute(stmt).all()
         }
+
+        # Xoá dữ liệu trong biến trước khi chạy
+        self.order_cv_list.clear()
+        self.missing_cv_list.clear()
 
         # Chuyển về dạng list gán vào biến lưu trữ để hiển thị trong model
         self.order_cv_list.extend(list(cv_versions_set))
@@ -195,38 +224,39 @@ class AddComboVariant(QWidget):
             else:
                 pass  # Bỏ qua nếu đã tạo
 
-        # Tạo model và gán vào view sau khi đã xử lí xong
-        self.cv_order_model = TableViewModel(
-            data=self.order_cv_list,
-            column_names=["combo_name", "variant_name"]
-        )
-        self.cv_order_view.setModel(self.cv_order_model)
+        # Hiển thị dữ liệu
+        self.cv_order_model.refresh_data(self.order_cv_list) # Nạp dữ liệu mới vào model
         order_combo_count = len(self.order_cv_list)
         self.cv_order_title.setText(f"Combo có trong đơn hàng: {order_combo_count}")
 
         if not self.missing_cv_list:
             self.cv_missing_title.setText("Không tìm thấy combo mới")
-            self.write_keys()
+            self.control_info_container.hide()
             self.cv_import_success_label.setText("Không phát hiện combo mới, hãy tiếp tục!")
             self.cv_import_success_container.show()
-            self.control_info_container.hide()
         else:
-            self.cv_missing_model = TableViewModel(
-                data=self.missing_cv_list,
-                column_names=["combo_name", "variant_name"]
-            )
-            self.cv_missing_view.setModel(self.cv_missing_model)
             self.new_combo_count = len(self.missing_cv_list)
             self.cv_missing_title.setText(f"Combo cần được thêm: {self.new_combo_count}")
             self.noti_label.setText(f"Phát hiện {self.new_combo_count} combo cần thêm")
+            self.begin_process_btn.hide()
+            self.cfm_button.show()
+            self.dcl_button.show()
+
+            self.cv_missing_model.refresh_data(self.missing_cv_list)
 
     def confirm_and_save(self):
         try:
-            self.session.commit()
             self.write_keys()
+            self.session.commit()
+
             self.missing_cv_list.clear()
-            self.cv_import_success_container.show() 
+            self.cv_missing_model.refresh_data(
+                self.missing_cv_list
+            )
+
+            self.cv_import_success_container.show()
             self.cv_import_success_label.setText(f"Đã thêm {self.new_combo_count} combo mới!")
+            self.cv_missing_title.setText("Đã thêm đầy đủ combo!")
             self.control_info_container.hide()
         except Exception as e:
             self.session.rollback()
@@ -235,6 +265,16 @@ class AddComboVariant(QWidget):
     def decline_and_revert(self):
         try:
             self.session.rollback()
+            self.order_cv_list.clear()
+            self.missing_cv_list.clear()
+
+            self.cv_order_model.refresh_data(self.order_cv_list)
+            self.cv_missing_model.refresh_data(self.missing_cv_list)
+
+            self.begin_process_btn.show()
+            self.cfm_button.hide()
+            self.dcl_button.hide()
+            self.noti_label.setText("<b>Vui lòng nhấn nút bắt đầu</b>")
         except Exception as e:
             print(e)
 
@@ -266,5 +306,3 @@ class AddComboVariant(QWidget):
             .where(ShopeeOrder.variant_name.is_not(None))
             .values(variant_key=subquery_variant)
         )
-
-        self.session.commit()
