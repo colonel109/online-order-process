@@ -36,6 +36,10 @@ class DataProcessWindow(QMainWindow):
         self.display_layout.addWidget(self.step_one)
         self.display_layout.addWidget(self.step_two)
 
+        self.current_step = 0
+
+        self.display_layout.setCurrentIndex(0)
+
         # Layout chính
         main_layout = QVBoxLayout()
         main_layout.setContentsMargins(0, 0, 0, 0)
@@ -58,15 +62,29 @@ class DataProcessWindow(QMainWindow):
         self.init_signal()
 
     def init_signal(self):
-        pass
+        self.progress_displayer.forward_btn.pressed.connect(self.move_forward)
+        self.progress_displayer.backward_btn.pressed.connect(self.move_backward)
     
     def move_forward(self):
-        self.current_step += 1
-        self.display_layout.setCurrentIndex(self.current_step)
+        print(f"fw: {self.display_layout.currentIndex()}")
+        if self.display_layout.currentIndex() < (self.display_layout.count() - 1):
+            self.current_step += 1
+            self.display_layout.setCurrentIndex(self.current_step)
+            self.progress_displayer.backward_btn.setEnabled(True)
+        
+        elif self.display_layout.currentIndex() == (self.display_layout.count() -1):
+            self.progress_displayer.forward_btn.setEnabled(False)
     
     def move_backward(self):
-        self.current_step -=1
-        self.display_layout.setCurrentIndex(self.current_step)
+        print(f"bw {self.display_layout.currentIndex()}")
+        if self.display_layout.currentIndex() < 1:
+            self.progress_displayer.backward_btn.setEnabled(False)
+        if self.display_layout.currentIndex == 0:
+            self.progress_displayer.backward_btn.setEnabled(False)
+        else:
+            self.current_step -= 1
+            self.display_layout.setCurrentIndex(self.current_step)
+            self.progress_displayer.forward_btn.setEnabled(True)
     
     def on_theme_changed(self, scheme):
         is_dark = (scheme == Qt.ColorScheme.Dark)

@@ -19,6 +19,7 @@ class ProgressDisplay(QWidget):
         # Layout hiển thị các nút điều khiển
         self.backward_btn = QPushButton("Quay lại")
         self.forward_btn = QPushButton("Tiếp tục")
+        self.backward_btn.setEnabled(False)
         
         control_layout = QHBoxLayout()
         control_layout.addWidget(self.backward_btn)
