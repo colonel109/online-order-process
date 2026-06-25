@@ -45,7 +45,8 @@ class AddComboDetail(QWidget):
             product_lookup=self.product_lookup_dict
         )
         self.product_input_view.setModel(self.product_input_model)
-        self.import_product_input = QPushButton("Thêm vào database")
+        self.import_product_input_btn = QPushButton("Thêm vào database")
+        self.import_product_input_btn.setEnabled(False)
         
         self.product_auto_complete = ProductAutoCompleter(self.product_suggest_list, self)
         self.product_input_view.setItemDelegateForColumn(0, self.product_auto_complete)
@@ -65,7 +66,7 @@ class AddComboDetail(QWidget):
         product_input_layout.addWidget(self.product_input_label)
         product_input_layout.addLayout(button_layout)
         product_input_layout.addWidget(self.product_input_view)
-        product_input_layout.addWidget(self.import_product_input)
+        product_input_layout.addWidget(self.import_product_input_btn)
 
         main_layout = QHBoxLayout()
         main_layout.addLayout(cv_version_layout)
@@ -80,7 +81,7 @@ class AddComboDetail(QWidget):
         self.cv_version_view.clicked.connect(self.combo_variant_select)
         self.add_row_btn.clicked.connect(self.add_row)
         self.del_row_btn.clicked.connect(self.delete_row)
-        self.import_product_input.clicked.connect(self.import_cache_to_combo_detail)
+        self.import_product_input_btn.clicked.connect(self.import_cache_to_combo_detail)
 
         self.product_input_model.dataChanged.connect(self.refresh_cv_table)
         self.product_input_model.rowsInserted.connect(self.refresh_cv_table)
@@ -317,7 +318,7 @@ class AddComboDetail(QWidget):
 
     def check_all_combo_valid(self):
         if not self._cv_detail_cache:
-            self.import_product_input.setEnabled(False)
+            self.import_product_input_btn.setEnabled(False)
             return
 
         # Giả định ban đầu là TẤT CẢ các combo đều hợp lệ
@@ -348,9 +349,9 @@ class AddComboDetail(QWidget):
 
         # Cập nhật trạng thái nút bấm dựa trên kết quả kiểm tra toàn cục
         if all_valid:
-            self.import_product_input.setEnabled(True)  # Mở khóa nút khi tất cả đều xanh
+            self.import_product_input_btn.setEnabled(True)  # Mở khóa nút khi tất cả đều xanh
         else:
-            self.import_product_input.setEnabled(False)  # Khóa nút khi còn ô đỏ
+            self.import_product_input_btn.setEnabled(False)  # Khóa nút khi còn ô đỏ
 
     def refresh_cv_table(self, *args):
         self.update_total_combo_value()
