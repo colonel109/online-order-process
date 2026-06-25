@@ -1,10 +1,10 @@
 from PySide6.QtWidgets import QWidget, QLabel, QTableView, QVBoxLayout, QHBoxLayout, QPushButton
-from PySide6.QtGui import QIcon, QColor
+from PySide6.QtGui import QColor
 from PySide6.QtCore import QSize, Qt
 from sqlalchemy import func, select
 from datetime import datetime
 
-from src.database.structure import ComboVariant, ComboDetail, ShopeeOrder, Product, ProductType
+from src.database.structure import ComboVariant, ComboDetail, ShopeeOrder, Product
 from src.data_model.table_view_model import ProductInputModel, TableViewModel
 from src.ui.helper.auto_complete import ProductAutoCompleter
 from src.utils.svg_color_changer import get_colored_qrc_icon
@@ -75,14 +75,17 @@ class AddComboDetail(QWidget):
 
         # Chạy hàm
         self.init_signal()
-    
+
     def init_signal(self):
         self.cv_version_view.clicked.connect(self.combo_variant_select)
         self.add_row_btn.clicked.connect(self.add_row)
         self.del_row_btn.clicked.connect(self.delete_row)
-        self.product_input_model.dataChanged.connect(self.update_total_combo_value)
-        self.product_input_model.modelReset.connect(self.update_total_combo_value)
         self.import_product_input.clicked.connect(self.import_cache_to_combo_detail)
+
+        self.product_input_model.dataChanged.connect(self.refresh_cv_table)
+        self.product_input_model.rowsInserted.connect(self.refresh_cv_table)
+        self.product_input_model.rowsRemoved.connect(self.refresh_cv_table)
+        self.product_input_model.modelReset.connect(self.refresh_cv_table)
 
     def process_and_display(self):
         """
@@ -311,3 +314,59 @@ class AddComboDetail(QWidget):
             else:
                 print("Không có dữ liệu sản phẩm hợp lệ nào để import.")
                 return False
+
+    def check_all_combo_valid(self):
+        if not self._cv_detail_cache:
+            self.import_product_input.setEnabled(False)
+            return
+
+        # Giả định ban đầu là TẤT CẢ các combo đều hợp lệ
+        all_valid = True
+
+        for combo in self._cv_detail_cache:
+            # SỬA LỖI: Đảm bảo đúng tên key "products" (có chữ s) giống như trong template cache của bạn
+            product_list = combo.get("products", [])
+
+            # Kiểm tra điều kiện lỗi 1: Không có sản phẩm hoặc có sản phẩm trống mã code
+            has_empty_code = (
+                    len(product_list) == 0 or
+                    any(not str(p.get("product_code", "")).strip() for p in product_list)
+            )
+
+            # Kiểm tra điều kiện lỗi 2: Bị lệch giá deal
+            deal_price = float(combo.get("deal_price", 0.0))
+            total_config_value = sum(
+                float(p.get("product_price", 0.0)) * int(p.get("product_quantity", 0))
+                for p in product_list
+            )
+            is_price_mismatched = abs(total_config_value - deal_price) >= 0.01
+
+            # SỬA LOGIC: Nếu phát hiện Trống mã HOẶC Lệch giá -> Combo này KHÔNG hợp lệ
+            if has_empty_code or is_price_mismatched:
+                all_valid = False
+                break  # Chỉ cần 1 combo hỏng là dừng vòng lặp ngay lập tức, không quét tiếp nữa
+
+        # Cập nhật trạng thái nút bấm dựa trên kết quả kiểm tra toàn cục
+        if all_valid:
+            self.import_product_input.setEnabled(True)  # Mở khóa nút khi tất cả đều xanh
+        else:
+            self.import_product_input.setEnabled(False)  # Khóa nút khi còn ô đỏ
+
+    def refresh_cv_table(self, *args):
+        self.update_total_combo_value()
+
+        current_left_index = self.cv_version_view.currentIndex()
+        if current_left_index.isValid():
+            row = current_left_index.row()
+            target_cell_index = self.cv_version_model.index(row, 2)
+
+            self.cv_version_model.dataChanged.emit(
+                target_cell_index,
+                target_cell_index,
+                [Qt.ItemDataRole.BackgroundRole]
+            )
+        else:
+            self.cv_version_model.layoutChanged.emit()
+
+        self.cv_version_view.viewport().update()
+        self.check_all_combo_valid()

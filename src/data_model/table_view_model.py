@@ -181,6 +181,9 @@ class ProductInputModel(QAbstractTableModel):
             elif col ==3:
                 try: row_data["product_quantity"] = int(value) if value else 0
                 except ValueError: row_data["product_quantity"] = 0
+            start_index = self.index(row_idx, 0)
+            end_index = self.index(row_idx, 3)
+            self.dataChanged.emit(start_index, end_index, [Qt.ItemDataRole.DisplayRole, Qt.ItemDataRole.EditRole])
             return True
         return False
     
