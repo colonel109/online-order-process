@@ -2,6 +2,7 @@ from PySide6.QtWidgets import QWidget, QLabel, QTableView, QVBoxLayout, QHBoxLay
 from PySide6.QtGui import QIcon, QColor
 from PySide6.QtCore import QSize, Qt
 from sqlalchemy import func, select
+from datetime import datetime
 
 from src.database.structure import ComboVariant, ComboDetail, ShopeeOrder, Product, ProductType
 from src.data_model.table_view_model import ProductInputModel, TableViewModel
@@ -44,6 +45,7 @@ class AddComboDetail(QWidget):
             product_lookup=self.product_lookup_dict
         )
         self.product_input_view.setModel(self.product_input_model)
+        self.import_product_input = QPushButton("Thêm vào database")
         
         self.product_auto_complete = ProductAutoCompleter(self.product_suggest_list, self)
         self.product_input_view.setItemDelegateForColumn(0, self.product_auto_complete)
@@ -63,6 +65,7 @@ class AddComboDetail(QWidget):
         product_input_layout.addWidget(self.product_input_label)
         product_input_layout.addLayout(button_layout)
         product_input_layout.addWidget(self.product_input_view)
+        product_input_layout.addWidget(self.import_product_input)
 
         main_layout = QHBoxLayout()
         main_layout.addLayout(cv_version_layout)
@@ -79,6 +82,7 @@ class AddComboDetail(QWidget):
         self.del_row_btn.clicked.connect(self.delete_row)
         self.product_input_model.dataChanged.connect(self.update_total_combo_value)
         self.product_input_model.modelReset.connect(self.update_total_combo_value)
+        self.import_product_input.clicked.connect(self.import_cache_to_combo_detail)
 
     def process_and_display(self):
         """
@@ -256,3 +260,54 @@ class AddComboDetail(QWidget):
         self.add_row_btn.setIcon(add_row_icon)
         self.del_row_btn.setIcon(del_row_icon)
         self.add_new_product_btn.setIcon(add_product_icon)
+
+    def import_cache_to_combo_detail(self):
+            """
+            Hàm bóc tách dữ liệu từ self._cv_detail_cache và tạo các bản ghi vào db
+            """
+            current_time = datetime.now()
+            combo_detail_objects = []
+
+            # 1. Duyệt qua dữ liệu cache đang lưu ở thuộc tính của lớp
+            for item in self._cv_detail_cache:
+                combo_variant_key = item.get("combo_variant_key")
+                combo_composition_key = item.get("combo_composition_key")
+                products = item.get("products", [])
+
+                # 2. Duyệt qua danh sách các sản phẩm cấu thành bên trong combo đó
+                for prod in products:
+                    # Bỏ qua nếu dòng sản phẩm này chưa điền hoặc trống key (đảm bảo tính toàn vẹn)
+                    if not prod.get("product_key"):
+                        continue
+
+                    # Tạo instance mới cho từng dòng trong bảng combo_detail
+                    detail_obj = ComboDetail(
+                        combo_variant_key=combo_variant_key,
+                        combo_composition_key=combo_composition_key,
+                        product_key=prod["product_key"],
+                        product_price=prod["product_price"],
+                        product_quantity=prod["product_quantity"],
+                        created_date=current_time,
+                        updated_date=current_time
+                    )
+                    combo_detail_objects.append(detail_obj)
+
+            # 3. Sử dụng ORM để đẩy toàn bộ danh sách vào database
+            if combo_detail_objects:
+                try:
+                    self.session.add_all(combo_detail_objects)
+                    self.session.commit()
+                    print(f"Đã import thành công {len(combo_detail_objects)} bản ghi vào combo_detail!")
+                    
+                    # Làm sạch cache hoặc view sau khi lưu thành công nếu cần thiết
+                    self._cv_detail_cache.clear()
+                    self.cv_version_model.refresh_data([])
+                    self.product_input_model.update_model([])
+                    
+                    return True
+                except Exception as e:
+                    self.session.rollback()
+                    print(f"Lỗi khi import combo_detail: {e}")
+            else:
+                print("Không có dữ liệu sản phẩm hợp lệ nào để import.")
+                return False
