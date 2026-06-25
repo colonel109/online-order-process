@@ -17,33 +17,32 @@ class AddComboDetail(QWidget):
         self.session = session
 
         # Các biến lưu trữ dữ liệu
-        self._cv_detail_cache = self.make_cache_data() # Lưu dữ dữ liệu cache tổng hợp
+        self._cv_detail_cache = [] # Lưu dữ dữ liệu cache tổng hợp
         self.product_suggest_list = [] # Lưu các cặp mã sản phẩm - tên sản phẩm để người dùng chọn trên giao diện
         self.product_lookup_dict = {} # Từ điển dạng {(product_code, product_name): {các key}} để điền ngược lại vào cache 
 
-        # Đưa dữ liệu vào biến
-        self.make_product_cache()
-
         # Thành phần giao diện
         # Bên trái - hiển thị các cặp combo - variant có trong file đơn hàng chưa map đúng giá
-        cv_version_label = QLabel("Combo chưa được cài giá")
-        cv_version_model = TableViewModel(
-            data=self.make_cv_version_data(),
-            column_names=["combo_name", "variant", "deal_price"],
-            cache=self._cv_detail_cache
+        self.cv_version_label = QLabel("Combo chưa được cài giá")
+        self.cv_version_model = TableViewModel(
+            data=None,
+            column_names=["combo_name", "variant", "deal_price"]
         )
+
         self.cv_version_view = QTableView() #Các cặp combo có trong file order
         self.cv_version_view.setSelectionBehavior(QTableView.SelectionBehavior.SelectRows) 
-        self.cv_version_view.setModel(cv_version_model)
+        self.cv_version_view.setModel(self.cv_version_model)
 
         cv_version_layout = QVBoxLayout()
-        cv_version_layout.addWidget(cv_version_label)
+        cv_version_layout.addWidget(self.cv_version_label)
         cv_version_layout.addWidget(self.cv_version_view)
        
         # Bên phải - hiển thị các sản phẩm, số lượng, giá của các cặp combo - variant khi được chọn 
         self.product_input_label = QLabel("Thêm sản phẩm vào combo")
         self.product_input_view = QTableView()
-        self.product_input_model = ProductInputModel(product_lookup=self.product_lookup_dict)
+        self.product_input_model = ProductInputModel(
+            product_lookup=self.product_lookup_dict
+        )
         self.product_input_view.setModel(self.product_input_model)
         
         self.product_auto_complete = ProductAutoCompleter(self.product_suggest_list, self)
@@ -80,6 +79,20 @@ class AddComboDetail(QWidget):
         self.del_row_btn.clicked.connect(self.delete_row)
         self.product_input_model.dataChanged.connect(self.update_total_combo_value)
         self.product_input_model.modelReset.connect(self.update_total_combo_value)
+
+    def process_and_display(self):
+        """
+        Hàm này được gọi khi bắt đầu trích xuất và hiển thị dữ liệu
+        """
+        try:
+            self._cv_detail_cache = self.make_cache_data()
+            self.make_product_cache()
+
+            self.cv_version_model._cache_reference = self._cv_detail_cache
+
+            self.cv_version_model.refresh_data(self.make_cv_version_data())
+        except Exception as e:
+            print(e)
 
     def make_cache_data(self):
         """

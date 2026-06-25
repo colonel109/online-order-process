@@ -9,7 +9,7 @@ class TableViewModel(QAbstractTableModel):
     """
     def __init__(self, data, column_names: list, cache=None):
         super().__init__()
-        self._data = data
+        self._data = data if data else []
         self._column_names = column_names
         if cache is not None:
             self._cache_reference = cache

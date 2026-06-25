@@ -242,6 +242,7 @@ class AddComboVariant(QWidget):
         self.cv_order_title.setText(f"Combo có trong đơn hàng: {order_combo_count}")
 
         if not self.missing_cv_list:
+            self.write_keys()
             self.cv_missing_title.setText("Không tìm thấy combo mới")
             self.control_info_container.hide()
             self.cv_import_success_label.setText("Không phát hiện combo mới, hãy tiếp tục!")
@@ -318,3 +319,5 @@ class AddComboVariant(QWidget):
             .where(ShopeeOrder.variant_name.is_not(None))
             .values(variant_key=subquery_variant)
         )
+        
+        self.session.commit()
