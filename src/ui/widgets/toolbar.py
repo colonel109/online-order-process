@@ -51,7 +51,7 @@ class Toolbar(QToolBar):
         icon_color = QColor("white") if is_dark_mode else QColor("#333333")
 
         del_order_icon = get_colored_qrc_icon(":/resource/icons/list-x.svg", icon_color)
-        begin_process_icon = get_colored_qrc_icon(":/resource/icons/sparkle-highlight.svg", icon_color)
+        begin_process_icon = get_colored_qrc_icon(":/resource/icons/sparkles.svg", icon_color)
 
         self.delete_order_act.setIcon(del_order_icon)
         self.begin_process_data_act.setIcon(begin_process_icon)

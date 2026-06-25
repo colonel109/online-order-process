@@ -67,7 +67,7 @@ class AddComboVariant(QWidget):
         """)
 
         # View hiển thị các combo có trong đơn hàng
-        self.cv_order_title = QLabel()
+        self.cv_order_title = QLabel("Combo có trong đơn hàng")
 
         self.cv_order_model = TableViewModel( # Tạo model và gán vào view
             data=[],
@@ -81,7 +81,7 @@ class AddComboVariant(QWidget):
         cv_order_layout.addWidget(self.cv_order_view)
 
         # View hiển thị các combo chưa được thêm
-        self.cv_missing_title = QLabel()
+        self.cv_missing_title = QLabel("Các cặp combo cần thêm")
 
         self.cv_missing_model = TableViewModel( # Tạo model và gán vào view
             data=[],
@@ -249,8 +249,8 @@ class AddComboVariant(QWidget):
             self.success_container.show()
         else:
             self.new_combo_count = len(self.missing_cv_list)
-            self.cv_missing_title.setText(f"Combo cần được thêm: {self.new_combo_count}")
-            self.noti_label.setText(f"Phát hiện {self.new_combo_count} combo cần thêm")
+            self.cv_missing_title.setText(f"Các cặp combo cần thêm: {self.new_combo_count}")
+            self.noti_label.setText(f"<b>Phát hiện {self.new_combo_count} combo cần thêm</b>")
             self.begin_process_btn.hide()
             self.cfm_button.show()
             self.dcl_button.show()

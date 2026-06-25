@@ -19,5 +19,6 @@
     <file>icons/package-plus.svg</file>
     <file>icons/circle-check.svg</file>
     <file>icons/zoom-scan.svg</file>
+    <file>icons/sparkles.svg</file>
 </qresource>
 </RCC>
