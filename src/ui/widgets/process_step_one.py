@@ -95,6 +95,7 @@ class AddComboVariant(QWidget):
         self.begin_process_btn.clicked.connect(self.process_and_display_data)
         self.custom_message_frame.confirm_button.clicked.connect(self.confirm_and_save)
         self.custom_message_frame.decline_button.clicked.connect(self.decline_and_revert)
+        self.custom_message_frame.continue_button.clicked.connect(self.press_and_disable)
 
     def process_and_display_data(self):
         """
@@ -267,3 +268,12 @@ class AddComboVariant(QWidget):
         )
         
         self.session.commit()
+    
+    def press_and_disable(self):
+        """
+        Hàm này phụ trách việc tắt và đổi tên nút tiếp tục sau khi người dùng nhấn vào
+        Tránh việc chạy lại dữ liệu của bước sau nhiều lần
+        """
+        
+        self.custom_message_frame.continue_button.setText("Đã hoàn thành bước 1")
+        self.custom_message_frame.continue_button.setEnabled(False)

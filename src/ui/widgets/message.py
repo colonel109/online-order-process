@@ -51,10 +51,14 @@ class CustomMessage(QFrame):
                 background-color: #233D4D; 
                 color: #000000;
             }
-            QPushButton {
+            QPushButton:enabled {
                 background-color: #73cefc;
                 color: black;
             } 
+            QPushButton:disabled {
+                background-color: #555555;  
+                color: #888888;
+            }            
             QLabel {
                 color: #ffffff;
                 text-align: left;

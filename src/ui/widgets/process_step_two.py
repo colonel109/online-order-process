@@ -183,7 +183,7 @@ class AddComboDetail(QWidget):
                     "variant_key": order.variant_key,
                     "combo_name": order.combo_name,
                     "deal_price": float(order_price),
-                    "variant_name": order.variant_name if order.variant_name else "-",
+                    "variant_name": order.variant_name if order.variant_name else "",
                     "combo_variant_key": cv_key,
                     "combo_composition_key": composition_key_available,
                     "products": [
