@@ -1,4 +1,4 @@
-from PySide6.QtWidgets import QWidget, QLabel, QTableView, QVBoxLayout, QHBoxLayout, QPushButton
+from PySide6.QtWidgets import QWidget, QLabel, QTableView, QVBoxLayout, QHBoxLayout, QPushButton, QFrame
 from PySide6.QtGui import QColor
 from PySide6.QtCore import QSize, Qt
 from sqlalchemy import func, select
@@ -24,7 +24,7 @@ class AddComboDetail(QWidget):
 
         # Thành phần giao diện
         # Bên trái - hiển thị các cặp combo - variant có trong file đơn hàng chưa map đúng giá
-        self.cv_version_label = QLabel("Combo chưa được cài giá")
+        self.cv_version_label = QLabel("<b>Combo chưa được cài giá</b>")
         self.cv_version_model = TableViewModel(
             data=None,
             column_names=["combo_name", "variant", "deal_price"]
@@ -39,7 +39,7 @@ class AddComboDetail(QWidget):
         cv_version_layout.addWidget(self.cv_version_view)
        
         # Bên phải - hiển thị các sản phẩm, số lượng, giá của các cặp combo - variant khi được chọn 
-        self.product_input_label = QLabel("Thêm sản phẩm vào combo")
+        self.product_input_label = QLabel("<b>Thêm sản phẩm vào combo</b>")
         self.product_input_view = QTableView()
         self.product_input_model = ProductInputModel(
             product_lookup=self.product_lookup_dict
@@ -55,16 +55,32 @@ class AddComboDetail(QWidget):
         self.add_row_btn = QPushButton()
         self.del_row_btn = QPushButton()
         self.add_new_product_btn = QPushButton()
+        
+        # Frame hiển thị giá trị tạm thời của đơn hàng được tính toán khi người dùng thay đổi thông tin trong biểu mẫu
+        self.temp_total_value = QLabel("Tổng giá trị tạm tính")
+        toolbar_layout = QHBoxLayout()
+        toolbar_frame = QFrame()
+        toolbar_frame.setObjectName("toolbar_frame")
+        toolbar_frame.setLayout(toolbar_layout)
+        toolbar_layout.addWidget(self.add_row_btn)
+        toolbar_layout.addWidget(self.del_row_btn)
+        toolbar_layout.addWidget(self.add_new_product_btn)
+        toolbar_layout.addStretch()
+        toolbar_layout.addWidget(self.temp_total_value)
+        toolbar_layout.setContentsMargins(0, 0, 0, 0)
 
-        button_layout = QHBoxLayout()
-        button_layout.addWidget(self.add_row_btn)
-        button_layout.addWidget(self.del_row_btn)
-        button_layout.addStretch(1)
-        button_layout.addWidget(self.add_new_product_btn)
+        toolbar_frame.setStyleSheet("""
+            QLabel {
+                border-radius: 5px;
+                background-color: #233D4D;
+                padding: 5px;
+                color: #ffffff;
+            }                            
+        """)
 
         product_input_layout = QVBoxLayout()
         product_input_layout.addWidget(self.product_input_label)
-        product_input_layout.addLayout(button_layout)
+        product_input_layout.addWidget(toolbar_frame)
         product_input_layout.addWidget(self.product_input_view)
         product_input_layout.addWidget(self.import_product_input_btn)
 
@@ -87,6 +103,11 @@ class AddComboDetail(QWidget):
         self.product_input_model.rowsInserted.connect(self.refresh_cv_table)
         self.product_input_model.rowsRemoved.connect(self.refresh_cv_table)
         self.product_input_model.modelReset.connect(self.refresh_cv_table)
+
+        self.product_input_model.dataChanged.connect(self.update_total_combo_value)
+        self.product_input_model.rowsInserted.connect(self.update_total_combo_value)
+        self.product_input_model.rowsRemoved.connect(self.update_total_combo_value)
+        self.product_input_model.modelReset.connect(self.update_total_combo_value)
 
     def process_and_display(self):
         """
@@ -252,6 +273,8 @@ class AddComboDetail(QWidget):
             float(p.get("product_price", 0.0)) * int(p.get("product_quantity", 0))
             for p in current_products
         )
+        total_sum_display = f"Tổng giá trị: {int(total_sum):,} đ" if total_sum else "Chưa cài giá" 
+        self.temp_total_value.setText(str(total_sum_display))
 
     def update_theme(self, is_dark_mode: bool):
         icon_color = QColor("white") if is_dark_mode else QColor("#333333")
