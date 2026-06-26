@@ -62,8 +62,8 @@ class DataProcessWindow(QMainWindow):
     def init_signal(self):
         self.progress_displayer.forward_btn.pressed.connect(self.move_forward)
         self.progress_displayer.backward_btn.pressed.connect(self.move_backward)
-        # self.step_one.next_step_button.pressed.connect(self.move_forward)
-        # self.step_one.next_step_button.pressed.connect(self.step_two.process_and_display)
+        self.step_one.custom_message_frame.continue_button.clicked.connect(self.move_forward)
+        self.step_one.custom_message_frame.continue_button.clicked.connect(self.step_two.process_and_display)
 
     def move_forward(self):
         current_index = self.display_layout.currentIndex()
