@@ -22,7 +22,6 @@ class AddComboVariant(QWidget):
         
         # Thông báo hiện kết quả, nút tuỳ chọn sau khi người dùng ấn nút bắt đầu
         self.custom_message_frame = CustomMessage()
-        self.custom_message_frame.hide()
 
         # Nút bắt đầu xử lí dữ liệu 
         noti_label = QLabel("<b>Vui lòng nhấn nút bắt đầu</b>")

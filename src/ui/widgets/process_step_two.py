@@ -8,6 +8,7 @@ from src.database.structure import ComboVariant, ComboDetail, ShopeeOrder, Produ
 from src.data_model.table_view_model import ProductInputModel, TableViewModel
 from src.ui.helper.auto_complete import ProductAutoCompleter
 from src.utils.svg_color_changer import get_colored_qrc_icon
+from src.ui.widgets.message import CustomMessage
 from resources import resources_rc
 
 class AddComboDetail(QWidget):
@@ -21,6 +22,9 @@ class AddComboDetail(QWidget):
         self._cv_detail_cache = [] # Lưu dữ dữ liệu cache tổng hợp
         self.product_suggest_list = [] # Lưu các cặp mã sản phẩm - tên sản phẩm để người dùng chọn trên giao diện
         self.product_lookup_dict = {} # Từ điển dạng {(product_code, product_name): {các key}} để điền ngược lại vào cache 
+
+        # Thông báo hiện kết quả, nút tuỳ chọn
+        self.custom_message_frame = CustomMessage()
 
         # Thành phần giao diện
         # Bên trái - hiển thị các cặp combo - variant có trong file đơn hàng chưa map đúng giá
@@ -84,9 +88,13 @@ class AddComboDetail(QWidget):
         product_input_layout.addWidget(self.product_input_view)
         product_input_layout.addWidget(self.import_product_input_btn)
 
-        main_layout = QHBoxLayout()
-        main_layout.addLayout(cv_version_layout)
-        main_layout.addLayout(product_input_layout)
+        display_layout = QHBoxLayout()
+        display_layout.addLayout(cv_version_layout)
+        display_layout.addLayout(product_input_layout)
+
+        main_layout = QVBoxLayout()
+        main_layout.addWidget(self.custom_message_frame, stretch=0)
+        main_layout.addLayout(display_layout, stretch=1)
 
         self.setLayout(main_layout)
 
@@ -197,6 +205,14 @@ class AddComboDetail(QWidget):
                     ]
                 }
                 cv_detail_list.append(combo_template)
+        
+        if cv_detail_list:
+            self.custom_message_frame.show_action_message(
+                text=f"Có {len(cv_detail_list)} phân nhóm giá của combo chưa được cài giá",
+                confirm_btn_text="Thêm vào cơ sở dữ liệu",
+                decline_button_text="Huỷ"
+            )
+            self.custom_message_frame.confirm_button.setEnabled(False) # Tạm thời tắt khi mới khởi tạo
 
         return cv_detail_list
 

@@ -99,9 +99,13 @@ class CustomMessage(QFrame):
                 background-color: #F08D39; 
                 color: #000000;
             }
-            #confirm_button {
+            #confirm_button:enabled {
                 background-color: #73cefc;
                 color: black;
+            } 
+            #confirm_button:disabled {
+                background-color: #555555;  
+                color: #888888;
             } 
             #decline_button {
                 background-color: #EEEEEE;
