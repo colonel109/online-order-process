@@ -4,6 +4,7 @@ from PySide6.QtCore import Qt
 from sqlalchemy import select, update
 from src.database.structure import ShopeeOrder, Combo, Variant, ComboVariant
 from src.data_model.table_view_model import TableViewModel
+from src.ui.widgets.message import CustomMessage
 from resources import resources_rc
 
 
@@ -18,53 +19,35 @@ class AddComboVariant(QWidget):
         self.order_cv_list = [] # Lưu trữ các cặp combo variant có trong đơn hàng
         self.missing_cv_list = [] # Lưu trữ các cặp combo variant chuẩn bị được thêm mới
         self.new_combo_count = None
+        
+        # Thông báo hiện kết quả, nút tuỳ chọn sau khi người dùng ấn nút bắt đầu
+        self.custom_message_frame = CustomMessage()
+        self.custom_message_frame.hide()
 
-        # Frame giữ nút bắt đầu xử lí data
-        # Thông tin và các nút điều khiển
-        self.noti_label = QLabel("<b>Vui lòng nhấn nút bắt đầu</b>")
+        # Nút bắt đầu xử lí dữ liệu 
+        noti_label = QLabel("<b>Vui lòng nhấn nút bắt đầu</b>")
+
+        self.begin_process_frame = QFrame()
+        self.begin_process_frame.setObjectName("begin_process_frame")
+        begin_process_layout = QVBoxLayout(self.begin_process_frame)
         self.begin_process_btn = QPushButton(
             QIcon(":/resource/icons/zoom-scan.svg"),
             "Bắt đầu quét các cặp combo có trong đơn hàng",
             self
         )
-        self.begin_process_btn.setStyleSheet("""
-            background-color: #73cefc;
-            color: black;
-        """)
+        begin_process_layout.addWidget(noti_label)
+        begin_process_layout.addWidget(self.begin_process_btn, alignment=Qt.AlignmentFlag.AlignLeft)
 
-        self.cfm_button = QPushButton("Thêm vào database")
-        self.cfm_button.setMaximumWidth(150)
-        self.dcl_button = QPushButton("Huỷ")
-        self.dcl_button.setMaximumWidth(150)
-
-        self.cfm_button.hide()
-        self.dcl_button.hide()
-
-        btn_layout = QHBoxLayout()
-        btn_layout.addWidget(self.begin_process_btn)
-        btn_layout.addWidget(self.cfm_button)
-        self.cfm_button.setObjectName("cfm_button")
-        btn_layout.addWidget(self.dcl_button)
-        btn_layout.addStretch()
-
-        control_info_layout = QVBoxLayout()
-        control_info_layout.addWidget(self.noti_label)
-        control_info_layout.addLayout(btn_layout)
-
-        self.control_info_container = QFrame()
-        self.control_info_container.setLayout(control_info_layout)
-        self.control_info_container.setObjectName("control_info_container")
-
-        self.control_info_container.setStyleSheet("""
-            #control_info_container{
+        self.begin_process_frame.setStyleSheet("""
+            .QFrame {
                 border-radius: 4px; 
-                background-color: #2a2a2a; 
+                background-color: #2a2a2a;
             }
-            #cfm_button{
+            QPushButton {
                 background-color: #73cefc;
-                color: black;
+                color: black;            
             }
-        """)
+            """)
 
         # View hiển thị các combo có trong đơn hàng
         self.cv_order_title = QLabel("Combo có trong đơn hàng")
@@ -90,39 +73,6 @@ class AddComboVariant(QWidget):
         self.cv_missing_view = QTableView()
         self.cv_missing_view.setModel(self.cv_missing_model)
 
-        # Thông báo hiển thị thao tác thành công (dùng cho cả việc import thành công và không có thông tin cần impor) 
-        cv_import_success_icon = QIcon(":/resource/icons/circle-check.svg")
-        icon_label = QLabel()
-        icon_label.setPixmap(cv_import_success_icon.pixmap(20, 20))
-        self.cv_import_success_label = QLabel()
-        success_label_layout = QHBoxLayout()
-        success_label_layout.addWidget(icon_label)
-        success_label_layout.addWidget(self.cv_import_success_label)
-        success_label_layout.addStretch()
-        self.success_container = QFrame()
-        self.success_container.setObjectName("success_container")
-
-        self.next_step_button = QPushButton("Sang bước tiếp theo")
-        self.next_step_button.setObjectName("next_step_button")
-
-        self.success_container.setStyleSheet("""
-            #success_container {
-                border-radius: 4px; 
-                background-color: #233D4D; 
-                color: #000000;
-            }
-            #next_step_button {
-                background-color: #73cefc;
-                color: black;
-            }
-        """)
-
-        success_container_layout = QVBoxLayout() # Layout chính 
-        success_container_layout.addLayout(success_label_layout)
-        success_container_layout.addWidget(self.next_step_button, alignment=Qt.AlignmentFlag.AlignLeft)
-        self.success_container.setLayout(success_container_layout)
-        self.success_container.hide() # Mặc định ẩn widget này
-
         cv_missing_layout = QVBoxLayout()
         cv_missing_layout.addWidget(self.cv_missing_title)
         cv_missing_layout.addWidget(self.cv_missing_view)
@@ -134,17 +84,17 @@ class AddComboVariant(QWidget):
 
         #Layout chính
         main_layout = QVBoxLayout()
-        main_layout.addWidget(self.control_info_container)
-        main_layout.addWidget(self.success_container)
-        main_layout.addLayout(display_layout)
+        main_layout.addWidget(self.custom_message_frame, stretch=0)
+        main_layout.addWidget(self.begin_process_frame, stretch=0)
+        main_layout.addLayout(display_layout, stretch=1)
 
         self.setLayout(main_layout)
         self.init_signal()
 
     def init_signal(self):
-        self.cfm_button.pressed.connect(self.confirm_and_save)
-        self.dcl_button.pressed.connect(self.decline_and_revert)
-        self.begin_process_btn.pressed.connect(self.process_and_display_data)
+        self.begin_process_btn.clicked.connect(self.process_and_display_data)
+        self.custom_message_frame.confirm_button.clicked.connect(self.confirm_and_save)
+        self.custom_message_frame.decline_button.clicked.connect(self.decline_and_revert)
 
     def process_and_display_data(self):
         """
@@ -241,36 +191,33 @@ class AddComboVariant(QWidget):
         order_combo_count = len(self.order_cv_list)
         self.cv_order_title.setText(f"Combo có trong đơn hàng: {order_combo_count}")
 
+        self.begin_process_frame.hide()
+
         if not self.missing_cv_list:
             self.write_keys()
             self.cv_missing_title.setText("Không tìm thấy combo mới")
-            self.control_info_container.hide()
-            self.cv_import_success_label.setText("Không phát hiện combo mới, hãy tiếp tục!")
-            self.success_container.show()
+            self.custom_message_frame.show_success_message(text="Không có combo mới")
         else:
             self.new_combo_count = len(self.missing_cv_list)
             self.cv_missing_title.setText(f"Các cặp combo cần thêm: {self.new_combo_count}")
-            self.noti_label.setText(f"<b>Phát hiện {self.new_combo_count} combo cần thêm</b>")
-            self.begin_process_btn.hide()
-            self.cfm_button.show()
-            self.dcl_button.show()
-
             self.cv_missing_model.refresh_data(self.missing_cv_list)
+            self.custom_message_frame.show_action_message(
+                text=f"{len(self.missing_cv_list)} combo mới sẽ được thêm vào cơ sở dữ liệu, vui lòng xác nhận", 
+                confirm_btn_text="Xác nhận",
+                decline_button_text="Từ chối"
+            )
 
     def confirm_and_save(self):
         try:
             self.write_keys()
             self.session.commit()
 
-            self.missing_cv_list.clear()
             self.cv_missing_model.refresh_data(
                 self.missing_cv_list
             )
-
-            self.success_container.show()
-            self.cv_import_success_label.setText(f"Đã thêm {self.new_combo_count} combo mới!")
             self.cv_missing_title.setText("Đã thêm đầy đủ combo!")
-            self.control_info_container.hide()
+            self.custom_message_frame.show_success_message(text=f"Đã thêm thành công {len(self.missing_cv_list)} combo mới vào cơ sở dữ liệu!")
+            self.missing_cv_list.clear()
         except Exception as e:
             self.session.rollback()
             print(e)
@@ -280,14 +227,13 @@ class AddComboVariant(QWidget):
             self.session.rollback()
             self.order_cv_list.clear()
             self.missing_cv_list.clear()
+            self.cv_order_title.clear()
+            self.cv_missing_title.clear()
 
             self.cv_order_model.refresh_data(self.order_cv_list)
             self.cv_missing_model.refresh_data(self.missing_cv_list)
-
-            self.begin_process_btn.show()
-            self.cfm_button.hide()
-            self.dcl_button.hide()
-            self.noti_label.setText("<b>Vui lòng nhấn nút bắt đầu</b>")
+            self.custom_message_frame.hide()
+            self.begin_process_frame.show()
         except Exception as e:
             print(e)
 
