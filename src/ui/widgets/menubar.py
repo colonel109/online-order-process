@@ -30,6 +30,10 @@ class Menubar(QMenuBar):
         self.open_folder_act.setStatusTip("Lấy dữ liệu từ tất cả các tệp đơn hàng cùng loại trong một thư mục")
         file_menu.addAction(self.open_folder_act)
 
+        data_menu = self.addMenu("Dữ liệu")
+        self.open_database_act = QAction("Mở dữ liệu đã lưu")
+        data_menu.addAction(self.open_database_act)
+
         self.init_signal()
 
     def init_signal(self):

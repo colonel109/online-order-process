@@ -14,6 +14,7 @@ from src.ui.widgets.menubar import Menubar
 from src.ui.widgets.statusbar import StatusBar
 from src.processors.file_loaders import ConfigLoader, OrderLoader
 from src.ui.windows.data_process_window import DataProcessWindow
+from src.ui.windows.database_window import DatabaseWindow
 
 
 class MainWindow(QMainWindow):
@@ -30,6 +31,9 @@ class MainWindow(QMainWindow):
 
         # Cửa sổ xử lí dữ liệu
         self.data_process_window = None
+
+        # Cửa sổ cơ sở dữ liệu
+        self.database_window = None
 
         # Khởi tạo các loader
         self.config_loader = ConfigLoader(config_file=self.config_path)
@@ -95,6 +99,7 @@ class MainWindow(QMainWindow):
         self.menubar.file_selected_signal.connect(self.process_imported_files)
         self.import_mask_widget.file_selected_signal.connect(self.process_imported_files)
         self.toolbar.begin_process_data_act.triggered.connect(self.open_data_process_window)
+        self.menubar.open_database_act.triggered.connect(self.open_database_window)
 
     def process_imported_files(self, paths):
         self.order_loader.data_processor(paths)
@@ -108,3 +113,7 @@ class MainWindow(QMainWindow):
         is_dark = (scheme == Qt.ColorScheme.Dark)
         self.menubar.update_theme(is_dark_mode=is_dark)
         self.toolbar.update_theme(is_dark_mode=is_dark)
+
+    def open_database_window(self):
+        self.database_window = DatabaseWindow()
+        self.database_window.show()
