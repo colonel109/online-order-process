@@ -80,6 +80,7 @@ class CustomMessage(QFrame):
         # Layout nút
         self.confirm_button = QPushButton()
         self.confirm_button.setObjectName("confirm_button")
+        self.confirm_button.setEnabled(False) # Mặc định tắt khi khởi tạo
         self.decline_button = QPushButton()
         self.decline_button.setObjectName("decline_button")
 

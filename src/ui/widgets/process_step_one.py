@@ -206,6 +206,7 @@ class AddComboVariant(QWidget):
                 confirm_btn_text="Xác nhận",
                 decline_button_text="Từ chối"
             )
+            self.custom_message_frame.confirm_button.setEnabled(True)
 
     def confirm_and_save(self):
         try:

@@ -1,6 +1,7 @@
 from PySide6.QtWidgets import QWidget, QLabel, QTableView, QVBoxLayout, QHBoxLayout, QPushButton, QFrame
 from PySide6.QtGui import QColor
 from PySide6.QtCore import QSize, Qt
+from pandas.core.ops import invalid
 from sqlalchemy import func, select
 from datetime import datetime
 
@@ -21,7 +22,8 @@ class AddComboDetail(QWidget):
         # Các biến lưu trữ dữ liệu
         self._cv_detail_cache = [] # Lưu dữ dữ liệu cache tổng hợp
         self.product_suggest_list = [] # Lưu các cặp mã sản phẩm - tên sản phẩm để người dùng chọn trên giao diện
-        self.product_lookup_dict = {} # Từ điển dạng {(product_code, product_name): {các key}} để điền ngược lại vào cache 
+        self.product_lookup_dict = {} # Từ điển dạng {(product_code, product_name): {các key}} để điền ngược lại vào cache
+        self.invalid_count = 0
 
         # Thông báo hiện kết quả, nút tuỳ chọn
         self.custom_message_frame = CustomMessage()
@@ -49,8 +51,6 @@ class AddComboDetail(QWidget):
             product_lookup=self.product_lookup_dict
         )
         self.product_input_view.setModel(self.product_input_model)
-        self.import_product_input_btn = QPushButton("Thêm vào database")
-        self.import_product_input_btn.setEnabled(False)
         
         self.product_auto_complete = ProductAutoCompleter(self.product_suggest_list, self)
         self.product_input_view.setItemDelegateForColumn(0, self.product_auto_complete)
@@ -86,7 +86,6 @@ class AddComboDetail(QWidget):
         product_input_layout.addWidget(self.product_input_label)
         product_input_layout.addWidget(toolbar_frame)
         product_input_layout.addWidget(self.product_input_view)
-        product_input_layout.addWidget(self.import_product_input_btn)
 
         display_layout = QHBoxLayout()
         display_layout.addLayout(cv_version_layout)
@@ -105,7 +104,7 @@ class AddComboDetail(QWidget):
         self.cv_version_view.clicked.connect(self.combo_variant_select)
         self.add_row_btn.clicked.connect(self.add_row)
         self.del_row_btn.clicked.connect(self.delete_row)
-        self.import_product_input_btn.clicked.connect(self.import_cache_to_combo_detail)
+        self.custom_message_frame.confirm_button.clicked.connect(self.import_cache_to_combo_detail)
 
         self.product_input_model.dataChanged.connect(self.refresh_cv_table)
         self.product_input_model.rowsInserted.connect(self.refresh_cv_table)
@@ -208,11 +207,15 @@ class AddComboDetail(QWidget):
         
         if cv_detail_list:
             self.custom_message_frame.show_action_message(
-                text=f"Có {len(cv_detail_list)} phân nhóm giá của combo chưa được cài giá",
+                text=f"Có {len(cv_detail_list)} phiên bản giá của combo chưa được cài",
                 confirm_btn_text="Thêm vào cơ sở dữ liệu",
                 decline_button_text="Huỷ"
             )
             self.custom_message_frame.confirm_button.setEnabled(False) # Tạm thời tắt khi mới khởi tạo
+        else:
+            self.custom_message_frame.show_success_message(
+                text="Tất cả các combo đều đã được cài giá"
+            )
 
         return cv_detail_list
 
@@ -340,13 +343,14 @@ class AddComboDetail(QWidget):
                 try:
                     self.session.add_all(combo_detail_objects)
                     self.session.commit()
-                    print(f"Đã import thành công {len(combo_detail_objects)} bản ghi vào combo_detail!")
-                    
+
                     # Làm sạch cache hoặc view sau khi lưu thành công nếu cần thiết
+                    self.custom_message_frame.show_success_message(
+                        text= f"Đã thêm dữ liệu sản phẩm cho {len(self._cv_detail_cache)} combo"
+                    )
                     self._cv_detail_cache.clear()
                     self.cv_version_model.refresh_data([])
                     self.product_input_model.update_model([])
-                    
                     return True
                 except Exception as e:
                     self.session.rollback()
@@ -356,12 +360,9 @@ class AddComboDetail(QWidget):
                 return False
 
     def check_all_combo_valid(self):
-        if not self._cv_detail_cache:
-            self.import_product_input_btn.setEnabled(False)
-            return
-
         # Giả định ban đầu là TẤT CẢ các combo đều hợp lệ
         all_valid = True
+        invalid_count = 0
 
         for combo in self._cv_detail_cache:
             # SỬA LỖI: Đảm bảo đúng tên key "products" (có chữ s) giống như trong template cache của bạn
@@ -384,13 +385,15 @@ class AddComboDetail(QWidget):
             # SỬA LOGIC: Nếu phát hiện Trống mã HOẶC Lệch giá -> Combo này KHÔNG hợp lệ
             if has_empty_code or is_price_mismatched:
                 all_valid = False
-                break  # Chỉ cần 1 combo hỏng là dừng vòng lặp ngay lập tức, không quét tiếp nữa
+                invalid_count += 1
 
         # Cập nhật trạng thái nút bấm dựa trên kết quả kiểm tra toàn cục
         if all_valid:
-            self.import_product_input_btn.setEnabled(True)  # Mở khóa nút khi tất cả đều xanh
+            self.custom_message_frame.confirm_button.setEnabled(True)  # Mở khóa nút khi tất cả đều xanh
+            self.custom_message_frame.action_message.setText("Tất cả combo đã được cài giá, xác nhận thêm vào cơ sở dữ liệu?")
         else:
-            self.import_product_input_btn.setEnabled(False)  # Khóa nút khi còn ô đỏ
+            self.custom_message_frame.confirm_button.setEnabled(False)  # Khóa nút khi còn ô đỏ
+            self.custom_message_frame.action_message.setText(f"Có {invalid_count} phiên bản giá của combo chưa được cài")
 
     def refresh_cv_table(self, *args):
         self.update_total_combo_value()
