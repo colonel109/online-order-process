@@ -213,3 +213,8 @@ class ProductInputModel(QAbstractTableModel):
         self.beginResetModel()
         self._data = new_data
         self.endResetModel()
+
+    def update_ref_list(self, new_data):
+        self.beginResetModel()
+        self._product_lookup = new_data
+        self.endResetModel()

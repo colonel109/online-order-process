@@ -1,12 +1,12 @@
 from PySide6.QtWidgets import QWidget, QLabel, QTableView, QVBoxLayout, QHBoxLayout, QPushButton, QFrame
 from PySide6.QtGui import QColor
 from PySide6.QtCore import QSize, Qt
-from pandas.core.ops import invalid
 from sqlalchemy import func, select
 from datetime import datetime
 
 from src.database.structure import ComboVariant, ComboDetail, ShopeeOrder, Product
 from src.data_model.table_view_model import ProductInputModel, TableViewModel
+from src.ui.dialogs.add_product import AddProduct
 from src.ui.helper.auto_complete import ProductAutoCompleter
 from src.utils.svg_color_changer import get_colored_qrc_icon
 from src.ui.widgets.message import CustomMessage
@@ -27,6 +27,9 @@ class AddComboDetail(QWidget):
 
         # Thông báo hiện kết quả, nút tuỳ chọn
         self.custom_message_frame = CustomMessage()
+
+        # Khởi tạo dialog thêm sản phẩm mới
+        self.add_product_dialog = AddProduct(session=session, parent=self)
 
         # Thành phần giao diện
         # Bên trái - hiển thị các cặp combo - variant có trong file đơn hàng chưa map đúng giá
@@ -105,6 +108,8 @@ class AddComboDetail(QWidget):
         self.add_row_btn.clicked.connect(self.add_row)
         self.del_row_btn.clicked.connect(self.delete_row)
         self.custom_message_frame.confirm_button.clicked.connect(self.import_cache_to_combo_detail)
+        self.add_new_product_btn.clicked.connect(self.open_add_product_dialog)
+        self.add_product_dialog.cfm_button.clicked.connect(self.update_product_ref_list)
 
         self.product_input_model.dataChanged.connect(self.refresh_cv_table)
         self.product_input_model.rowsInserted.connect(self.refresh_cv_table)
@@ -413,3 +418,13 @@ class AddComboDetail(QWidget):
 
         self.cv_version_view.viewport().update()
         self.check_all_combo_valid()
+
+    def open_add_product_dialog(self):
+        self.add_product_dialog.show()
+
+    def update_product_ref_list(self):
+        self.product_lookup_dict.clear()
+        self.product_suggest_list.clear()
+        self.make_product_cache()
+        self.product_auto_complete.suggestion_list = self.product_suggest_list
+        self.product_input_model.update_ref_list(new_data=self.product_lookup_dict)
