@@ -115,5 +115,5 @@ class MainWindow(QMainWindow):
         self.toolbar.update_theme(is_dark_mode=is_dark)
 
     def open_database_window(self):
-        self.database_window = DatabaseWindow()
+        self.database_window = DatabaseWindow(session=self.session)
         self.database_window.show()
